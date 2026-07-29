@@ -5,7 +5,7 @@ import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import AuthLayout from '../components/layout/AuthLayout';
 import Input from '../components/ui/Input';
 import { useAppDispatch } from '../store/hooks';
-import { setToken } from '../store/slices/authSlice';
+import { login } from '../store/slices/authSlice';
 
 interface FormErrors {
   email?: string;
@@ -41,7 +41,7 @@ const LoginPage = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError('');
 
@@ -50,12 +50,14 @@ const LoginPage = () => {
     }
 
     setIsSubmitting(true);
-    window.setTimeout(() => {
-      setIsSubmitting(false);
-      const fakeToken = `demo-token.${btoa(email)}.${Date.now()}`;
-      dispatch(setToken(fakeToken));
+    const result = await dispatch(login({ email, password }));
+    setIsSubmitting(false);
+
+    if (login.fulfilled.match(result)) {
       navigate('/dashboard');
-    }, 700);
+    } else {
+      setFormError((result.payload as string) || 'Unable to sign in');
+    }
   };
 
   return (

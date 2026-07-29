@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom';
 
+// recharts' ResponsiveContainer needs ResizeObserver, which jsdom doesn't implement.
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  value: ResizeObserverMock,
+});
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query: string) => ({

@@ -5,7 +5,7 @@ import { User, Mail, Lock, Building2, Loader2, AlertCircle, Check } from 'lucide
 import AuthLayout from '../components/layout/AuthLayout';
 import Input from '../components/ui/Input';
 import { useAppDispatch } from '../store/hooks';
-import { setToken } from '../store/slices/authSlice';
+import { register, login } from '../store/slices/authSlice';
 
 interface FormErrors {
   fullName?: string;
@@ -80,7 +80,7 @@ const SignupPage = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError('');
 
@@ -89,12 +89,23 @@ const SignupPage = () => {
     }
 
     setIsSubmitting(true);
-    window.setTimeout(() => {
+
+    const registerResult = await dispatch(register({ name: fullName, email, password }));
+    if (!register.fulfilled.match(registerResult)) {
       setIsSubmitting(false);
-      const fakeToken = `demo-token.${btoa(email)}.${Date.now()}`;
-      dispatch(setToken(fakeToken));
+      setFormError((registerResult.payload as string) || 'Unable to create account');
+      return;
+    }
+
+    // Registration does not log the user in - sign them in immediately after.
+    const loginResult = await dispatch(login({ email, password }));
+    setIsSubmitting(false);
+
+    if (login.fulfilled.match(loginResult)) {
       navigate('/dashboard');
-    }, 700);
+    } else {
+      navigate('/login');
+    }
   };
 
   return (
