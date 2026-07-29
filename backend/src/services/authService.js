@@ -5,6 +5,7 @@ import { generateRandomToken, hashToken } from '../utils/crypto.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { env } from '../config/env.js';
 import { durationFromNow } from '../utils/duration.js';
+import { sendPasswordResetEmail } from './emailService.js';
 
 const MAX_ACTIVE_REFRESH_TOKENS = 5;
 
@@ -107,6 +108,10 @@ export const requestPasswordReset = async (email) => {
   user.passwordResetTokenHash = hashToken(resetToken);
   user.passwordResetExpires = durationFromNow('1h');
   await user.save();
+
+  const resetUrl = `${env.frontendUrl}/reset-password?token=${resetToken}`;
+  await sendPasswordResetEmail({ to: user.email, resetUrl });
+
   return resetToken;
 };
 

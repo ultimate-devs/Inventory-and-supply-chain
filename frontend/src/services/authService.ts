@@ -1,6 +1,13 @@
 import { api } from '../lib/apiClient';
 import type { ApiEnvelope } from '../types/api';
-import type { AuthResponse, LoginPayload, RegisterPayload, User } from '../types/auth';
+import type {
+  AuthResponse,
+  ForgotPasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+  ResetPasswordPayload,
+  User,
+} from '../types/auth';
 
 export const authService = {
   async register(payload: RegisterPayload): Promise<User> {
@@ -25,5 +32,13 @@ export const authService = {
   async me(): Promise<User> {
     const { data } = await api.get<ApiEnvelope<User>>('/auth/me');
     return data.data;
+  },
+
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+    await api.post('/auth/forgot-password', payload);
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<void> {
+    await api.post('/auth/reset-password', payload);
   },
 };
