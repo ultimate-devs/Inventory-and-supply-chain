@@ -3,7 +3,12 @@ import * as itemController from '../controllers/itemController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { writeLimiter } from '../middleware/rateLimiters.js';
-import { createItemValidators, updateItemValidators, stockMovementValidators } from '../validators/itemValidators.js';
+import {
+  createItemValidators,
+  updateItemValidators,
+  stockMovementValidators,
+  consumptionValidators,
+} from '../validators/itemValidators.js';
 import { ROLES } from '../config/roles.js';
 
 const router = Router();
@@ -95,6 +100,25 @@ router.post(
   stockMovementValidators,
   validate,
   itemController.addMovement,
+);
+
+/**
+ * @openapi
+ * /items/{id}/consumption:
+ *   post:
+ *     summary: Record stock consumption for an item, also updating its daily demand history
+ *     tags: [Items]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       201: { description: Consumption recorded }
+ */
+router.post(
+  '/:id/consumption',
+  canWrite,
+  writeLimiter,
+  consumptionValidators,
+  validate,
+  itemController.addConsumption,
 );
 
 export default router;
