@@ -29,5 +29,16 @@ export const updateItemValidators = [
 export const stockMovementValidators = [
   body('type').isIn(Object.values(MOVEMENT_TYPES)).withMessage('Invalid movement type'),
   body('quantity').isFloat().withMessage('Quantity must be a number'),
+  body('reason')
+    .if((value, { req }) => ['adjustment', 'damage'].includes(req.body.type))
+    .trim()
+    .notEmpty()
+    .withMessage('A reason is required for adjustments and damage write-offs')
+    .isLength({ max: 300 }),
+  body('reason').optional().trim().isLength({ max: 300 }),
+];
+
+export const consumptionValidators = [
+  body('quantity').isFloat({ gt: 0 }).withMessage('Quantity must be a positive number'),
   body('reason').optional().trim().isLength({ max: 300 }),
 ];

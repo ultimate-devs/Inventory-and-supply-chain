@@ -7,13 +7,17 @@ import {
   Tags,
   Users,
   Settings,
-  Bell,
   Search,
   LogOut,
   Menu,
   X,
+  Truck,
+  ClipboardList,
+  Calculator,
+  Sparkles,
 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
+import NotificationBell from './NotificationBell';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
 import { ROLES } from '../../types/auth';
@@ -30,6 +34,10 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: null },
   { to: '/inventory', label: 'Inventory', icon: Package, roles: null },
   { to: '/categories', label: 'Categories', icon: Tags, roles: null },
+  { to: '/rop-eoq-calculator', label: 'ROP/EOQ Calculator', icon: Calculator, roles: null },
+  { to: '/suppliers', label: 'Suppliers', icon: Truck, roles: null },
+  { to: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList, roles: null },
+  { to: '/algorithms/greedy', label: 'Greedy Allocation', icon: Sparkles, roles: null },
   { to: '/users', label: 'Users', icon: Users, roles: [ROLES.SUPER_ADMIN] },
   { to: '/settings', label: 'Settings', icon: Settings, roles: [ROLES.SUPER_ADMIN] },
 ];
@@ -110,14 +118,7 @@ const AppLayout = () => {
           </div>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label="Notifications"
-              disabled
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-400 dark:border-slate-700"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
+            <NotificationBell />
             <ThemeToggle />
             <div className="hidden items-center gap-2 border-l border-slate-200 pl-3 dark:border-slate-700 sm:flex">
               <div className="text-right leading-tight">

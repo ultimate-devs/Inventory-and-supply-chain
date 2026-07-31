@@ -20,6 +20,15 @@ import UserManagementPage from './pages/UserManagementPage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import ROPEOQCalculatorPage from './pages/ROPEOQCalculatorPage';
+import SupplierListPage from './pages/SupplierListPage';
+import SupplierDetailPage from './pages/SupplierDetailPage';
+import PurchaseOrderListPage from './pages/PurchaseOrderListPage';
+import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
+import CreatePurchaseOrderPage from './pages/CreatePurchaseOrderPage';
+import GreedyAlgorithmRunPage from './pages/GreedyAlgorithmRunPage';
+import AlgorithmComparisonPage from './pages/AlgorithmComparisonPage';
+import GreedyAlgorithmHistoryPage from './pages/GreedyAlgorithmHistoryPage';
 
 const HomeGuard = ({ children }: { children: ReactNode }) => {
   const status = useAppSelector((state) => state.auth.status);
@@ -60,6 +69,18 @@ function App() {
           <Route path="/inventory" element={<InventoryListPage />} />
           <Route path="/inventory/:id" element={<ItemDetailPage />} />
           <Route path="/categories" element={<CategoryManagementPage />} />
+          <Route path="/rop-eoq-calculator" element={<ROPEOQCalculatorPage />} />
+
+          <Route path="/suppliers" element={<SupplierListPage />} />
+          <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
+
+          <Route path="/purchase-orders" element={<PurchaseOrderListPage />} />
+          <Route path="/purchase-orders/new" element={<CreatePurchaseOrderPage />} />
+          <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
+
+          <Route path="/algorithms/greedy" element={<GreedyAlgorithmRunPage />} />
+          <Route path="/algorithms/compare" element={<AlgorithmComparisonPage />} />
+          <Route path="/algorithms/history" element={<GreedyAlgorithmHistoryPage />} />
 
           <Route element={<ProtectedRoute roles={[ROLES.SUPER_ADMIN]} />}>
             <Route path="/users" element={<UserManagementPage />} />

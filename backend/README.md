@@ -1,6 +1,8 @@
 # Backend — Inventory & Supply Chain API
 
-Phase 1 API: platform security (auth/RBAC), audit logging, system settings, and the live inventory core (categories, items, ROP/EOQ algorithms, stock movements, dashboard aggregation). Node 20, Express 4 (ESM), Mongoose 8.
+Phase 1: platform security (auth/RBAC), audit logging, system settings, and the live inventory core (categories, items, ROP/EOQ algorithms, stock movements, dashboard aggregation).
+
+Phase 2 adds the full supply-chain loop: supplier management with a four-metric performance score and greedy supplier selection, the purchase order lifecycle (two-level approval, optimistic locking, GRN with under/over-delivery discrepancy handling), stock-threshold and overdue-PO alerts, and the Greedy vs Proportional budget allocation comparison. Node 20, Express 4 (ESM), Mongoose 8.
 
 ## Getting started
 
@@ -40,10 +42,18 @@ Layered: `routes → controllers → services → models`. Controllers stay thin
 
 Auth: bcrypt-hashed passwords (cost 12), short-lived JWT access tokens returned to the client, and a rotating refresh token stored **hashed** on the `User` document and set as an httpOnly/secure/SameSite cookie scoped to `/api/v1/auth`. `middleware/auth.js` exports `protect` (verifies the access token) and `authorize(...roles)` (RBAC). Every mutating request is audit-logged (`middleware/auditLog.js` + `AuditLog` model).
 
-Algorithms live as pure, independently unit-tested functions under `src/services/algorithms/` (`rop.js`, `eoq.js`, `stockStatus.js`, `demandStats.js`); `Item`'s own pre-save hook (`models/Item.js`) recomputes and caches ROP/EOQ/stock-status on every save, so creating an item, editing it, or recording a stock movement all keep those fields current automatically. `services/stockMovementService.js` wraps a stock movement + item update in a single Mongo transaction.
+Algorithms live as pure, independently unit-tested functions under `src/services/algorithms/` (`rop.js`, `eoq.js`, `stockStatus.js`, `demandStats.js`, plus Phase 2's `supplierScoring.js`, `supplierSelection.js`, `urgencyScore.js`, `greedyAllocation.js`, `proportionalAllocation.js`, `algorithmComparison.js`); `Item`'s own pre-save hook (`models/Item.js`) recomputes and caches ROP/EOQ/stock-status on every save, and its post-save hook (`services/alertService.js`) opens/resolves the matching low/critical/excess-stock alert - so creating an item, editing it, or recording a stock movement all keep those fields and alerts current automatically. `services/stockMovementService.js` wraps a stock movement + item update in a single Mongo transaction; movement types now include `receipt` (GRN), `consumption` (also updates `dailyDemandHistory`), and `damage` alongside the original `in`/`out`/`adjustment`.
 
-`models/Supplier.js`, `PurchaseOrder.js`, and `Alert.js` are **schema-only** — a Phase 2 lookahead agreed with Member 3, no routes/controllers exist for them yet.
+Phase 2 modules, same layered pattern:
+
+- **Suppliers** (`supplierService.js`) — CRUD, item catalogue (price/lead time per item), approve/suspend status, and `GET /suppliers/recommend?item=` (greedy selection: ranks every supplier stocking that item by price, lead time, and performance score).
+- **Purchase orders** (`purchaseOrderService.js`) — full lifecycle `draft → submitted → approved/rejected → sent → shipped → partially_received/received → cancelled`. Every status-changing write is a `findOneAndUpdate` keyed on a `version` field (optimistic locking) so two concurrent approvals can't silently clobber each other. Orders above `SystemSettings.poTwoLevelApprovalThreshold` require two different approvers.
+- **GRN** (`grnService.js`) — `POST /purchase-orders/:id/receive` runs entirely inside one Mongo transaction: detects under/over-delivery per line, posts a `receipt` stock movement (which itself recalculates ROP/EOQ/stock-status and syncs the item's alert), resolves any `overdue_po` alert, and - once the PO is fully received - recalculates the supplier's performance score from that delivery.
+- **Alerts** (`alertService.js`) — `low_stock`/`critical_stock`/`excess_stock` alerts are kept in sync automatically by `Item`'s post-save hook; `overdue_po` alerts are raised by an hourly cron (`services/scheduler.js`) for any receivable PO past its expected delivery date. `GET /alerts/unread-count` backs the notification bell.
+- **Algorithms/Greedy** (`algorithmService.js`) — pulls real low-stock/critical items, scores each by urgency and cost-to-clear, then runs the Greedy (urgency-first) and Proportional (water-filling) allocators side by side; every comparison run is saved to `GreedyRun` for the history page.
 
 ## Testing
 
-Jest + Supertest, with `mongodb-memory-server` running as a single-node replica set (so transaction-based tests, like stock movements, work exactly like production). `tests/unit/` covers the algorithm functions with edge cases (zero demand, zero lead time, boundary stock levels, extreme values); `tests/integration/` exercises full request flows (auth, RBAC, category/item CRUD, stock movements, dashboard aggregation) against a real (in-memory) database.
+Jest + Supertest, with `mongodb-memory-server` running as a single-node replica set (so transaction-based tests, like stock movements and goods receipt, work exactly like production). `tests/unit/` covers the algorithm functions with edge cases (zero demand/budget, empty item lists, tied urgency scores, boundary stock levels, extreme values); `tests/integration/` exercises full request flows (auth, RBAC, category/item CRUD, stock movements, dashboard aggregation, supplier CRUD/recommendation, the full PO lifecycle including two-level approval and discrepancy handling, and the algorithm comparison + alert acknowledgement flows) against a real (in-memory) database.
+
+Note: on Windows, `mongodb-memory-server` can take noticeably longer than expected per test file to spin up/tear down its replica set, and Jest sometimes reports "did not exit one second after the test run has completed" even though every test already passed - this is process-teardown lag, not a hung test; check the printed pass/fail summary rather than assuming a stall.

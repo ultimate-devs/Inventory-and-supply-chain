@@ -1,9 +1,9 @@
 # Inventory & Supply Chain Management System
 
-Web-based Inventory & Supply Chain Management System (MERN + planned ADK agent layer) — UWS MSc group project, SCQF Level 11. This README covers **Phase 1: Secure Platform + Live Inventory Core**.
+Web-based Inventory & Supply Chain Management System (MERN + planned ADK agent layer) — UWS MSc group project, SCQF Level 11. This README covers **Phase 1 (Secure Platform + Live Inventory Core)** and **Phase 2 (Suppliers, Purchase Orders, Greedy Allocation)**.
 
-- `backend/` — Express/MongoDB API: auth & RBAC, audit log, system settings, categories/items with ROP/EOQ, dashboard aggregation. See `backend/README.md`.
-- `frontend/` — React/Vite app: auth flow, dashboard, inventory/category management, admin pages. See `frontend/README.md`.
+- `backend/` — Express/MongoDB API: auth & RBAC, audit log, system settings, categories/items with ROP/EOQ, dashboard aggregation, suppliers with performance scoring, the full purchase order lifecycle with GRN, alerts, and the Greedy vs Proportional budget allocator. See `backend/README.md`.
+- `frontend/` — React/Vite app: auth flow, dashboard, inventory/category management, admin pages, supplier/PO management, ROP/EOQ calculator, greedy allocation & comparison pages, notification bell. See `frontend/README.md`.
 
 ## Quick start (Docker)
 
@@ -36,13 +36,21 @@ Run MongoDB yourself as a single-node replica set, point `backend/.env`'s `MONGO
 
 ## Team & phase status
 
-Team ownership, engineering standards, and the Phase 1 Definition of Done are documented in the Phase 1 project brief (not in this repo). At a glance, this phase delivers:
+Team ownership and engineering standards are documented in the project briefs (not in this repo). At a glance:
 
+**Phase 1** delivers:
 - Real JWT auth (rotating refresh tokens, httpOnly cookie) with 4 roles enforced server-side
 - Category/Item CRUD with automatic ROP (simple + probabilistic) and EOQ (Wilson formula) recalculation
-- Transactional stock movements, a nightly recalculation cron, and a live dashboard
-- `Supplier`/`PurchaseOrder`/`Alert` schemas as a reviewed Phase 2 lookahead (no API yet)
+- Transactional stock movements, an hourly recalculation cron, and a live dashboard
 - Swagger docs, an audit log, ≥80% test coverage on `backend/src/services/**`, and a seed script driven by the real DataCo Smart Supply Chain dataset
+
+**Phase 2** delivers:
+- Supplier CRUD, item catalogue (price/lead time), a four-metric performance score (on-time rate, accuracy, lead-time reliability, price consistency), approve/suspend status, and greedy supplier recommendation
+- The full purchase order lifecycle - draft → submitted → approved/rejected → sent → shipped → partially/fully received → cancelled - with two-level approval above a configurable value threshold and optimistic locking (`version` field) on every transition
+- Goods receipt (GRN) with under/over-delivery discrepancy detection, atomic stock update + alert resolution + supplier score recalculation in a single Mongo transaction
+- Low/critical/excess-stock alerts kept in sync automatically on every item save, plus an hourly overdue-PO cron; a notification bell in the UI
+- Greedy (urgency-ranked) vs Proportional (water-filling) budget allocation, run against real low-stock items, compared side by side and saved to history
+- A client-side ROP/EOQ what-if calculator with a live 7x7 EOQ sensitivity heatmap
 
 ## Architecture
 
@@ -55,23 +63,44 @@ flowchart LR
         AUTH[Auth & RBAC]
         INV[Categories / Items]
         ALGO["ROP / EOQ\nalgorithms"]
+        SUP["Suppliers +\nperformance scoring"]
+        PO["Purchase Orders\n(2-level approval, GRN)"]
+        ALERTS["Alerts\n(stock + overdue-PO)"]
+        GREEDY["Greedy vs Proportional\nallocation"]
         DASH[Dashboard aggregation]
         AUDIT[Audit log middleware]
+        CRON["Hourly cron\n(recalc + overdue-PO)"]
     end
     DB[(MongoDB\nsingle-node replica set)]
 
     FE -- "JWT access token (header) +\nrefresh token (httpOnly cookie)" --> AUTH
     FE --> INV
+    FE --> SUP
+    FE --> PO
+    FE --> ALERTS
+    FE --> GREEDY
     FE --> DASH
     INV --> ALGO
+    SUP -- "recommend/rank" --> PO
+    PO -- "GRN: stock + score" --> INV
+    PO --> SUP
+    INV -- "stockStatus change" --> ALERTS
+    PO -- "overdue" --> ALERTS
+    GREEDY --> INV
+    CRON --> INV
+    CRON --> ALERTS
     AUTH --> DB
     INV --> DB
     ALGO --> DB
+    SUP --> DB
+    PO --> DB
+    ALERTS --> DB
+    GREEDY --> DB
     DASH --> DB
     AUDIT --> DB
 ```
 
-## MongoDB schema (Phase 1)
+## MongoDB schema (Phase 1 + Phase 2)
 
 ```mermaid
 erDiagram
@@ -79,9 +108,13 @@ erDiagram
     Category ||--o{ Item : contains
     Item ||--o{ StockMovement : "has history"
     User ||--o{ StockMovement : performs
-    Supplier ||--o{ PurchaseOrder : "fulfills (Phase 2)"
-    Item ||--o{ Alert : "raises (Phase 2)"
-    PurchaseOrder ||--o{ Alert : "raises (Phase 2)"
+    Supplier ||--o{ PurchaseOrder : fulfills
+    Supplier ||--o{ Item : "stocks (catalogue)"
+    Item ||--o{ Alert : raises
+    PurchaseOrder ||--o{ Alert : raises
+    User ||--o{ PurchaseOrder : requests
+    User ||--o{ GreedyRun : runs
+    Item ||--o{ GreedyRun : "considered in"
 
     User {
       string name
@@ -104,6 +137,7 @@ erDiagram
       string currency
       number excessStockMultiplier
       number defaultServiceLevel
+      number poTwoLevelApprovalThreshold
     }
     Category {
       string name
@@ -125,28 +159,48 @@ erDiagram
     }
     StockMovement {
       ObjectId item
-      string type
+      string type "in|out|adjustment|receipt|consumption|damage"
       number quantity
       number resultingStock
       ObjectId performedBy
     }
     Supplier {
       string name
-      array itemsCatalogue
+      array itemsCatalogue "item, unitPrice, leadTimeDays"
       array scoreHistory
+      object stats
+      number onTimeRate
+      number accuracyRate
+      number leadTimeReliability
+      number priceConsistency
+      number performanceScore
+      string status "pending|approved|suspended"
     }
     PurchaseOrder {
       string poNumber
       ObjectId supplier
-      array lines
-      string status
+      ObjectId requestedBy
+      array lines "item, quantity, unitPrice, receivedQuantity"
+      number totalAmount
+      string status "draft..received|cancelled|rejected"
+      array statusHistory
+      array approvals
+      array discrepancies
+      boolean requiresSecondApproval
+      number version "optimistic lock"
     }
     Alert {
-      string type
+      string type "low_stock|critical_stock|excess_stock|overdue_po"
       string severity
-      string status
+      string status "open|acknowledged|resolved"
       ObjectId item
+      ObjectId purchaseOrder
+    }
+    GreedyRun {
+      ObjectId runBy
+      number budget
+      array itemsConsidered
+      object greedyResult
+      object proportionalResult
     }
 ```
-
-`Supplier`, `PurchaseOrder`, and `Alert` are schema-only in Phase 1 (Member 3 lookahead) — no routes/controllers consume them yet.

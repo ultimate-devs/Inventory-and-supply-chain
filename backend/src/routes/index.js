@@ -5,6 +5,10 @@ import systemSettingsRoutes from './systemSettingsRoutes.js';
 import categoryRoutes from './categoryRoutes.js';
 import itemRoutes from './itemRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
+import supplierRoutes from './supplierRoutes.js';
+import purchaseOrderRoutes from './purchaseOrderRoutes.js';
+import alertRoutes from './alertRoutes.js';
+import algorithmRoutes from './algorithmRoutes.js';
 
 const router = Router();
 
@@ -18,5 +22,9 @@ router.use('/settings', systemSettingsRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/items', itemRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/suppliers', supplierRoutes);
+router.use('/purchase-orders', purchaseOrderRoutes);
+router.use('/alerts', alertRoutes);
+router.use('/algorithms', algorithmRoutes);
 
 export default router;

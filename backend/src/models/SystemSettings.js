@@ -10,6 +10,7 @@ const systemSettingsSchema = new mongoose.Schema(
     criticalStockThresholdPercent: { type: Number, default: 10, min: 0, max: 100 },
     excessStockMultiplier: { type: Number, default: 3, min: 1 },
     defaultServiceLevel: { type: Number, enum: [90, 95, 99], default: 95 },
+    poTwoLevelApprovalThreshold: { type: Number, default: 5000, min: 0 },
   },
   { timestamps: true },
 );

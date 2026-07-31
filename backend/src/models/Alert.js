@@ -23,6 +23,10 @@ const alertSchema = new mongoose.Schema(
 
     item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' },
     purchaseOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseOrder' },
+    supplier: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
+
+    acknowledgedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    acknowledgedAt: { type: Date },
 
     resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     resolvedAt: { type: Date },

@@ -2,6 +2,10 @@ import { configureStore } from '@reduxjs/toolkit';
 import themeReducer from './slices/themeSlice';
 import authReducer, { setCredentials, clearAuth } from './slices/authSlice';
 import inventoryReducer from './slices/inventorySlice';
+import suppliersReducer from './slices/suppliersSlice';
+import purchaseOrdersReducer from './slices/purchaseOrdersSlice';
+import algorithmsReducer from './slices/algorithmsSlice';
+import alertsReducer from './slices/alertsSlice';
 import { setAuthHandlers } from '../lib/apiClient';
 
 export const store = configureStore({
@@ -9,6 +13,10 @@ export const store = configureStore({
     theme: themeReducer,
     auth: authReducer,
     inventory: inventoryReducer,
+    suppliers: suppliersReducer,
+    purchaseOrders: purchaseOrdersReducer,
+    algorithms: algorithmsReducer,
+    alerts: alertsReducer,
   },
 });
 

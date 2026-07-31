@@ -1,5 +1,5 @@
 import * as itemService from '../services/itemService.js';
-import { recordStockMovement, listMovementsForItem } from '../services/stockMovementService.js';
+import { recordStockMovement, recordConsumption, listMovementsForItem } from '../services/stockMovementService.js';
 import { asyncHandler, sendResponse } from '../utils/sendResponse.js';
 import { recordAuditEvent } from '../middleware/auditLog.js';
 
@@ -49,4 +49,20 @@ export const addMovement = asyncHandler(async (req, res) => {
 export const listMovements = asyncHandler(async (req, res) => {
   const movements = await listMovementsForItem(req.params.id);
   sendResponse(res, 200, { data: movements, message: 'Stock movements retrieved' });
+});
+
+export const addConsumption = asyncHandler(async (req, res) => {
+  const { item, movement } = await recordConsumption({
+    itemId: req.params.id,
+    quantity: req.body.quantity,
+    reason: req.body.reason,
+    performedBy: req.user.id,
+  });
+  await recordAuditEvent({
+    actor: req.user.id,
+    action: 'item.stockMovement.consumption',
+    target: item._id.toString(),
+    ip: req.ip,
+  });
+  sendResponse(res, 201, { data: { item, movement }, message: 'Consumption recorded' });
 });

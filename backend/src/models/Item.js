@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { STOCK_STATUS } from '../services/algorithms/stockStatus.js';
 import { computeItemMetrics } from '../services/algorithms/computeItemMetrics.js';
 import { SystemSettings } from './SystemSettings.js';
+import { syncStockAlerts } from '../services/alertService.js';
 
 const demandEntrySchema = new mongoose.Schema(
   {
@@ -69,6 +70,14 @@ itemSchema.pre('save', async function recalcMetrics(next) {
   } catch (err) {
     next(err);
   }
+});
+
+// Keeps low/critical/excess-stock Alert documents in sync with every save
+// (creation, edits, manual stock movements, and the recalculation cron).
+itemSchema.post('save', function syncAlerts(doc, next) {
+  syncStockAlerts(doc, { session: doc.$session() })
+    .then(() => next())
+    .catch((err) => next(err));
 });
 
 export const Item = mongoose.model('Item', itemSchema);
