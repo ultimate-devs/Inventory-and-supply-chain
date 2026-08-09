@@ -1,16 +1,22 @@
 import { Item } from '../models/Item.js';
 import { AuditLog } from '../models/AuditLog.js';
+import { PurchaseOrder, PO_STATUS } from '../models/PurchaseOrder.js';
 import { STOCK_STATUS } from './algorithms/stockStatus.js';
 
 const CRITICAL_ITEMS_LIMIT = 10;
 const RECENT_ACTIVITY_LIMIT = 15;
+
+// Statuses where a PO is still awaiting delivery - i.e. "pending" from an
+// operations point of view (already approved-and-in-flight counts too, not
+// just awaiting approval).
+const PENDING_PO_STATUSES = [PO_STATUS.SUBMITTED, PO_STATUS.APPROVED, PO_STATUS.SENT, PO_STATUS.SHIPPED];
 
 export const getDashboardData = async () => {
   // aggregate() bypasses the schema's pre(/^find/) soft-delete middleware,
   // so both pipelines below start with an explicit isDeleted match.
   const notDeleted = { $match: { isDeleted: { $ne: true } } };
 
-  const [kpiAgg, byCategory, criticalItems, recentActivity] = await Promise.all([
+  const [kpiAgg, byCategory, criticalItems, recentActivity, pendingOrders] = await Promise.all([
     Item.aggregate([
       notDeleted,
       {
@@ -63,6 +69,7 @@ export const getDashboardData = async () => {
       .sort({ createdAt: -1 })
       .limit(RECENT_ACTIVITY_LIMIT)
       .populate('actor', 'name email'),
+    PurchaseOrder.countDocuments({ status: { $in: PENDING_PO_STATUSES } }),
   ]);
 
   const kpis = kpiAgg[0] || {
@@ -80,8 +87,7 @@ export const getDashboardData = async () => {
       criticalItemCount: kpis.criticalItemCount,
       lowItemCount: kpis.lowItemCount,
       excessItemCount: kpis.excessItemCount,
-      // Purchase orders don't exist yet (Phase 2 / Member 3) - always 0 for now.
-      pendingOrders: 0,
+      pendingOrders,
     },
     stockVsReorderByCategory: byCategory,
     criticalItems,

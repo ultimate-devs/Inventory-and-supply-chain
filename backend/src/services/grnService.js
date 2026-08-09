@@ -1,13 +1,23 @@
 import mongoose from 'mongoose';
 import { PurchaseOrder, PO_STATUS, RECEIVABLE_STATUSES } from '../models/PurchaseOrder.js';
 import { Supplier } from '../models/Supplier.js';
-import { Alert, ALERT_TYPES, ALERT_STATUS } from '../models/Alert.js';
+import { Alert, ALERT_TYPES, ALERT_SEVERITY, ALERT_STATUS } from '../models/Alert.js';
 import { ApiError } from '../utils/ApiError.js';
 import { recordStockMovement } from './stockMovementService.js';
 import { MOVEMENT_TYPES } from '../models/StockMovement.js';
 import { applyReceiptToStats } from './algorithms/supplierScoring.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// Severity scales with how large the gap is relative to what was ordered on
+// that line, not just its absolute size - a 2-unit shortfall on an order of
+// 5 is a bigger problem than a 2-unit shortfall on an order of 500.
+const discrepancySeverity = (variance, orderedQuantity) => {
+  const ratio = orderedQuantity > 0 ? Math.abs(variance) / orderedQuantity : 1;
+  if (ratio >= 0.5) return ALERT_SEVERITY.CRITICAL;
+  if (ratio >= 0.2) return ALERT_SEVERITY.WARNING;
+  return ALERT_SEVERITY.INFO;
+};
 
 /**
  * Records a Goods Received Note against a purchase order: for each line,
@@ -56,6 +66,23 @@ export const receiveGoods = async (poId, incomingLines, expectedVersion, userId)
             type: variance < 0 ? 'under_delivery' : 'over_delivery',
             variance,
           });
+
+          // eslint-disable-next-line no-await-in-loop
+          await Alert.create(
+            [
+              {
+                type: ALERT_TYPES.QUANTITY_DISCREPANCY,
+                severity: discrepancySeverity(variance, poLine.quantity),
+                message: `PO ${po.poNumber}: received ${incoming.receivedQuantity} of ${remainingExpected} expected (${
+                  variance > 0 ? 'over' : 'under'
+                } by ${Math.abs(variance)})`,
+                item: poLine.item,
+                purchaseOrder: po._id,
+                supplier: po.supplier,
+              },
+            ],
+            { session },
+          );
         }
         poLine.receivedQuantity += incoming.receivedQuantity;
 

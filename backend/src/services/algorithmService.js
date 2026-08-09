@@ -55,7 +55,7 @@ export const runProportionalPreview = async (budget, itemIds) => {
 
 export const runComparisonAndSave = async (budget, itemIds, userId) => {
   const candidates = await buildCandidateItems(itemIds);
-  const { greedy, proportional, deltas } = compareAllocations(candidates, budget);
+  const { greedy, proportional, ilp, deltas } = compareAllocations(candidates, budget);
 
   const run = await GreedyRun.create({
     runBy: userId,
@@ -63,6 +63,7 @@ export const runComparisonAndSave = async (budget, itemIds, userId) => {
     itemsConsidered: candidates,
     greedyResult: greedy,
     proportionalResult: proportional,
+    ilpResult: ilp,
   });
 
   return { run, deltas };

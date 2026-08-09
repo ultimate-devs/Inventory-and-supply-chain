@@ -9,6 +9,7 @@ import supplierRoutes from './supplierRoutes.js';
 import purchaseOrderRoutes from './purchaseOrderRoutes.js';
 import alertRoutes from './alertRoutes.js';
 import algorithmRoutes from './algorithmRoutes.js';
+import reportRoutes from './reportRoutes.js';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/suppliers', supplierRoutes);
 router.use('/purchase-orders', purchaseOrderRoutes);
 router.use('/alerts', alertRoutes);
 router.use('/algorithms', algorithmRoutes);
+router.use('/reports', reportRoutes);
 
 export default router;

@@ -1,6 +1,12 @@
 import { compareAllocations } from '../../src/services/algorithms/algorithmComparison.js';
 
 describe('compareAllocations', () => {
+  it('defaults to an empty item list and zero budget when called with no arguments', () => {
+    const result = compareAllocations();
+    expect(result.greedy.totalAllocated).toBe(0);
+    expect(result.ilp.totalAllocated).toBe(0);
+  });
+
   it('returns matching zeroed results for an empty item list', () => {
     const result = compareAllocations([], 500);
     expect(result.greedy.totalAllocated).toBe(0);
@@ -26,5 +32,21 @@ describe('compareAllocations', () => {
 
     // Greedy should serve strictly more weighted urgency than proportional here.
     expect(result.deltas.weightedUrgencyServed).toBeGreaterThan(0);
+  });
+
+  it('includes an ilp result and deltas alongside greedy/proportional', () => {
+    const items = [
+      { item: 'a', name: 'Critical Widget', urgencyScore: 95, neededValue: 200, unitCost: 10 },
+      { item: 'b', name: 'Mild Widget', urgencyScore: 30, neededValue: 200, unitCost: 10 },
+    ];
+    const result = compareAllocations(items, 200);
+
+    expect(result.ilp).toBeDefined();
+    expect(result.ilp.itemsPartiallyCovered).toBe(0);
+    expect(result.deltas.ilp.vsGreedy).toBeDefined();
+    expect(result.deltas.ilp.vsProportional).toBeDefined();
+    expect(result.deltas.ilp.vsGreedy.totalAllocated).toBe(
+      result.ilp.totalAllocated - result.greedy.totalAllocated,
+    );
   });
 });

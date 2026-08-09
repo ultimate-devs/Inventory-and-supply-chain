@@ -29,6 +29,13 @@ import CreatePurchaseOrderPage from './pages/CreatePurchaseOrderPage';
 import GreedyAlgorithmRunPage from './pages/GreedyAlgorithmRunPage';
 import AlgorithmComparisonPage from './pages/AlgorithmComparisonPage';
 import GreedyAlgorithmHistoryPage from './pages/GreedyAlgorithmHistoryPage';
+import StockTurnoverPage from './pages/reports/StockTurnoverPage';
+import StockStatusBreakdownPage from './pages/reports/StockStatusBreakdownPage';
+import AlgorithmComparisonReportPage from './pages/reports/AlgorithmComparisonReportPage';
+import BudgetUtilisationPage from './pages/reports/BudgetUtilisationPage';
+import SupplierPerformanceRadarPage from './pages/reports/SupplierPerformanceRadarPage';
+import PurchaseOrderPipelinePage from './pages/reports/PurchaseOrderPipelinePage';
+import CategorySpendPage from './pages/reports/CategorySpendPage';
 
 const HomeGuard = ({ children }: { children: ReactNode }) => {
   const status = useAppSelector((state) => state.auth.status);
@@ -81,6 +88,14 @@ function App() {
           <Route path="/algorithms/greedy" element={<GreedyAlgorithmRunPage />} />
           <Route path="/algorithms/compare" element={<AlgorithmComparisonPage />} />
           <Route path="/algorithms/history" element={<GreedyAlgorithmHistoryPage />} />
+
+          <Route path="/reports/stock-turnover" element={<StockTurnoverPage />} />
+          <Route path="/reports/stock-status-breakdown" element={<StockStatusBreakdownPage />} />
+          <Route path="/reports/algorithm-comparison" element={<AlgorithmComparisonReportPage />} />
+          <Route path="/reports/budget-utilisation" element={<BudgetUtilisationPage />} />
+          <Route path="/reports/supplier-performance" element={<SupplierPerformanceRadarPage />} />
+          <Route path="/reports/po-pipeline" element={<PurchaseOrderPipelinePage />} />
+          <Route path="/reports/category-spend" element={<CategorySpendPage />} />
 
           <Route element={<ProtectedRoute roles={[ROLES.SUPER_ADMIN]} />}>
             <Route path="/users" element={<UserManagementPage />} />

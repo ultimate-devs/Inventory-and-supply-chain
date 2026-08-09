@@ -9,6 +9,7 @@ export const ALERT_TYPES = Object.freeze({
   CRITICAL_STOCK: 'critical_stock',
   EXCESS_STOCK: 'excess_stock',
   OVERDUE_PO: 'overdue_po',
+  QUANTITY_DISCREPANCY: 'quantity_discrepancy',
 });
 
 export const ALERT_SEVERITY = Object.freeze({ INFO: 'info', WARNING: 'warning', CRITICAL: 'critical' });

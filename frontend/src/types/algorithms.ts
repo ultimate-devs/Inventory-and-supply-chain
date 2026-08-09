@@ -24,6 +24,8 @@ export interface AllocationResult {
   itemsPartiallyCovered: number;
   itemsUncovered: number;
   weightedUrgencyServed: number;
+  // Set only when the ILP allocator fell back to Greedy (too many candidates).
+  note?: string;
 }
 
 export interface AllocationDeltas {
@@ -33,6 +35,10 @@ export interface AllocationDeltas {
   itemsPartiallyCovered: number;
   itemsUncovered: number;
   weightedUrgencyServed: number;
+  ilp?: {
+    vsGreedy: Omit<AllocationDeltas, 'ilp'>;
+    vsProportional: Omit<AllocationDeltas, 'ilp'>;
+  };
 }
 
 export interface GreedyRun {
@@ -42,6 +48,7 @@ export interface GreedyRun {
   itemsConsidered: CandidateItem[];
   greedyResult: AllocationResult;
   proportionalResult: AllocationResult;
+  ilpResult?: AllocationResult;
   createdAt: string;
 }
 

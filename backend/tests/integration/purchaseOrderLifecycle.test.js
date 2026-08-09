@@ -202,6 +202,12 @@ describe('Purchase order full lifecycle: create -> approve -> send -> receive ->
     // Score is only recalculated once the PO is fully received.
     expect(partial.body.data.supplier).toBeNull();
 
+    const discrepancyAlert = await Alert.findOne({ purchaseOrder: poId, type: 'quantity_discrepancy' });
+    expect(discrepancyAlert).not.toBeNull();
+    // 4 units short out of 10 ordered = 40% gap, falls in the 20-50% -> warning band.
+    expect(discrepancyAlert.severity).toBe('warning');
+    expect(discrepancyAlert.message).toMatch(/under by 4/i);
+
     const complete = await procurement(request(app).post(`/api/v1/purchase-orders/${poId}/receive`)).send({
       version: 4,
       lines: [{ item: itemId, receivedQuantity: 4 }],
@@ -236,6 +242,40 @@ describe('Purchase order full lifecycle: create -> approve -> send -> receive ->
     expect(receive.status).toBe(200);
     expect(receive.body.data.purchaseOrder.status).toBe('received');
     expect(receive.body.data.purchaseOrder.discrepancies[0].type).toBe('over_delivery');
+
+    const discrepancyAlert = await Alert.findOne({ purchaseOrder: poId, type: 'quantity_discrepancy' });
+    expect(discrepancyAlert).not.toBeNull();
+    expect(discrepancyAlert.message).toMatch(/over by 2/i);
+  });
+
+  it('raises a low-severity discrepancy alert for a small under-delivery gap', async () => {
+    const procurementToken = await loginAs('po6-procurement@example.com', ROLES.PROCUREMENT_OFFICER);
+    const managerToken = await loginAs('po6-manager@example.com', ROLES.INVENTORY_MANAGER);
+    const procurement = as(procurementToken);
+    const manager = as(managerToken);
+
+    const { itemId, supplierId } = await setupSupplierAndItem(procurement, manager, { currentStock: 100, safetyStock: 5 });
+
+    const create = await procurement(request(app).post('/api/v1/purchase-orders')).send({
+      supplier: supplierId,
+      lines: [{ item: itemId, quantity: 100, unitPrice: 2 }],
+    });
+    const poId = create.body.data._id;
+
+    await procurement(request(app).post(`/api/v1/purchase-orders/${poId}/submit`)).send({ version: 0 });
+    await manager(request(app).post(`/api/v1/purchase-orders/${poId}/approve`)).send({ version: 1 });
+    await procurement(request(app).post(`/api/v1/purchase-orders/${poId}/send`)).send({ version: 2 });
+
+    // 5 units short out of 100 ordered = 5% gap, falls below the 20% warning threshold.
+    const receive = await procurement(request(app).post(`/api/v1/purchase-orders/${poId}/receive`)).send({
+      version: 3,
+      lines: [{ item: itemId, receivedQuantity: 95 }],
+    });
+    expect(receive.status).toBe(200);
+
+    const discrepancyAlert = await Alert.findOne({ purchaseOrder: poId, type: 'quantity_discrepancy' });
+    expect(discrepancyAlert).not.toBeNull();
+    expect(discrepancyAlert.severity).toBe('info');
   });
 });
 

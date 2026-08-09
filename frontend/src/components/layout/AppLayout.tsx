@@ -14,7 +14,8 @@ import {
   Truck,
   ClipboardList,
   Calculator,
-  Sparkles,
+  Shuffle,
+  FileBarChart,
 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from './NotificationBell';
@@ -37,7 +38,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/rop-eoq-calculator', label: 'ROP/EOQ Calculator', icon: Calculator, roles: null },
   { to: '/suppliers', label: 'Suppliers', icon: Truck, roles: null },
   { to: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList, roles: null },
-  { to: '/algorithms/greedy', label: 'Greedy Allocation', icon: Sparkles, roles: null },
+  { to: '/algorithms/greedy', label: 'Greedy Allocation', icon: Shuffle, roles: null },
+  { to: '/reports/stock-turnover', label: 'Reports', icon: FileBarChart, roles: null },
   { to: '/users', label: 'Users', icon: Users, roles: [ROLES.SUPER_ADMIN] },
   { to: '/settings', label: 'Settings', icon: Settings, roles: [ROLES.SUPER_ADMIN] },
 ];
@@ -45,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
     isActive
-      ? 'bg-gradient-to-r from-primary-600 to-fuchsia-600 text-white shadow-sm'
+      ? 'bg-primary-700 text-white'
       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
   }`;
 
@@ -65,7 +67,7 @@ const AppLayout = () => {
   const sidebarContent = (
     <>
       <div className="flex h-16 items-center gap-2 px-5 text-lg font-bold text-slate-900 dark:text-slate-100">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-fuchsia-600 text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-700 text-white">
           <Boxes className="h-4 w-4" />
         </span>
         SupplyChain Pro

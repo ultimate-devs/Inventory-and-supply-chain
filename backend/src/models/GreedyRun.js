@@ -37,6 +37,8 @@ const allocationResultSchema = new mongoose.Schema(
     itemsPartiallyCovered: { type: Number, required: true, min: 0 },
     itemsUncovered: { type: Number, required: true, min: 0 },
     weightedUrgencyServed: { type: Number, required: true, min: 0 },
+    // Set only when the ILP allocator fell back to Greedy (too many candidates).
+    note: { type: String, trim: true },
   },
   { _id: false },
 );
@@ -48,6 +50,9 @@ const greedyRunSchema = new mongoose.Schema(
     itemsConsidered: { type: [candidateItemSchema], default: [] },
     greedyResult: { type: allocationResultSchema, required: true },
     proportionalResult: { type: allocationResultSchema, required: true },
+    // Optional: added alongside the ILP allocator. Runs saved before that
+    // feature existed simply won't have it.
+    ilpResult: { type: allocationResultSchema, required: false },
   },
   { timestamps: true },
 );

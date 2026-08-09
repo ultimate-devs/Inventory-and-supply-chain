@@ -13,6 +13,7 @@
     "test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage",
     "seed": "node scripts/seedFromDataCo.js",
     "seed:download": "node scripts/downloadDataCoDataset.js",
+    "benchmark:reports": "node scripts/benchmarkReports.js",
     "lint": "eslint src"
   },
   "dependencies": {
