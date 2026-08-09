@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Plus, Trash2, Sparkles } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Plus, Trash2, Award } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchItems } from '../store/slices/inventorySlice';
 import { fetchSuppliers, fetchRecommendation, clearRecommendation } from '../store/slices/suppliersSlice';
@@ -193,7 +193,7 @@ const CreatePurchaseOrderPage = () => {
             disabled={recommendationStatus === 'loading'}
             className="inline-flex items-center gap-1.5"
           >
-            <Sparkles className="h-4 w-4" />
+            <Award className="h-4 w-4" />
             {recommendationStatus === 'loading' ? 'Finding best supplier...' : 'Recommend Supplier'}
           </Button>
         </div>

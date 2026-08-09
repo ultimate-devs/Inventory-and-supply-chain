@@ -40,7 +40,7 @@ const AlgorithmComparisonPage = () => {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="w-48">
           <Input id="budget" label="Budget" icon={null} type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </div>
@@ -69,7 +69,7 @@ const AlgorithmComparisonPage = () => {
             <AllocationResultPanel title="Proportional (baseline)" result={comparison.run.proportionalResult} />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h3 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
               Difference (Greedy - Proportional)
             </h3>

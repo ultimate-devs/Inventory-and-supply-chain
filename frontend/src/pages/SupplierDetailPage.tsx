@@ -212,7 +212,7 @@ const SupplierDetailPage = () => {
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} className="fill-slate-500" />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} className="fill-slate-500" />
                 <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0' }} />
-                <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="score" stroke="#0d9488" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

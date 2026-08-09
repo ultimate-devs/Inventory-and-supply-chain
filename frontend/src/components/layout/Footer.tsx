@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-fuchsia-600 text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-700 text-white">
               <Boxes className="h-3.5 w-3.5" />
             </span>
             SupplyChain Pro

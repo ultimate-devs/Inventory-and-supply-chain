@@ -15,7 +15,7 @@ const SUMMARY_TILES: Array<{ key: keyof AllocationResult; label: string; format?
 ];
 
 const AllocationResultPanel = ({ title, result }: AllocationResultPanelProps) => (
-  <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+  <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
     <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
 
     <div className="grid grid-cols-3 gap-3">
@@ -42,7 +42,7 @@ const AllocationResultPanel = ({ title, result }: AllocationResultPanelProps) =>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary-600 to-fuchsia-600 transition-all duration-700 ease-out"
+              className="h-full rounded-full bg-primary-600 transition-all duration-500 ease-out"
               style={{ width: `${Math.min(100, Math.round(a.fractionCovered * 100))}%` }}
             />
           </div>

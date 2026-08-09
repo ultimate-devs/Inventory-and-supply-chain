@@ -28,7 +28,7 @@ const Input = ({ label, icon, error, type = 'text', id, className = '', ...rest 
         <input
           id={id}
           type={inputType}
-          className={`w-full rounded-xl border bg-white py-2.5 pl-10 ${
+          className={`w-full rounded-lg border bg-white py-2.5 pl-10 ${
             isPassword ? 'pr-10' : 'pr-3'
           } text-sm text-slate-900 shadow-sm outline-none transition-colors duration-150 placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:bg-slate-800 dark:text-slate-100 ${
             error

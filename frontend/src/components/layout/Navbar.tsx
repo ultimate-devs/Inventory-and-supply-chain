@@ -13,7 +13,7 @@ const Navbar = () => {
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-slate-100"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-fuchsia-600 text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-700 text-white">
             <Boxes className="h-4 w-4" />
           </span>
           SupplyChain Pro

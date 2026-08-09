@@ -39,13 +39,13 @@ const KpiCard = ({
   value: string;
   tone?: 'primary' | 'critical';
 }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div className="flex items-center gap-3">
       <span
         className={`flex h-10 w-10 items-center justify-center rounded-xl ${
           tone === 'critical'
             ? 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400'
-            : 'bg-gradient-to-br from-primary-500/10 to-fuchsia-500/10 text-primary-600 dark:text-primary-400'
+            : 'bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-400'
         }`}
       >
         <Icon className="h-5 w-5" />
@@ -135,7 +135,7 @@ const DashboardPage = () => {
         <KpiCard icon={ClipboardList} label="Pending Orders" value={String(data.kpis.pendingOrders)} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Stock vs. Reorder Point by Category</h2>
         {chartData.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-400">No categories yet.</p>
@@ -144,7 +144,7 @@ const DashboardPage = () => {
             data={chartData}
             categoryKey="category"
             series={[
-              { key: 'Current Stock', label: 'Current Stock', color: '#6366f1' },
+              { key: 'Current Stock', label: 'Current Stock', color: '#0d9488' },
               { key: 'Reorder Point', label: 'Reorder Point', color: '#f59e0b' },
             ]}
           />

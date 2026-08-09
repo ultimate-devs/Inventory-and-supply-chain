@@ -87,7 +87,7 @@ const ROPEOQCalculatorPage = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Inputs</h2>
           <div className="grid grid-cols-2 gap-3">
             <Input id="avgDailyDemand" label="Avg Daily Demand" icon={null} type="number" value={avgDailyDemand} onChange={(e) => setAvgDailyDemand(Number(e.target.value) || 0)} />
@@ -128,7 +128,7 @@ const ROPEOQCalculatorPage = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             EOQ Sensitivity (Ordering Cost x Holding Cost)

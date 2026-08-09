@@ -20,7 +20,7 @@ interface TableProps<T> {
 
 function Table<T>({ columns, rows, rowKey, isLoading, error, emptyMessage = 'No records found', onRowClick }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full min-w-max text-left text-sm">
         <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
           <tr>
