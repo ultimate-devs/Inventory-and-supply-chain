@@ -22,7 +22,7 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw ApiError.unauthorized('Account not found or deactivated');
   }
 
-  req.user = { id: user._id.toString(), role: user.role, email: user.email };
+  req.user = { id: user._id.toString(), role: user.role, email: user.email, isServiceAccount: user.isServiceAccount };
   next();
 });
 

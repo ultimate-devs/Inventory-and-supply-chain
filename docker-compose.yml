@@ -55,5 +55,26 @@ services:
       - ./backend:/app
       - /app/node_modules
 
+  agents:
+    build: ./agents
+    container_name: inventory-agents
+    depends_on:
+      - api
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      API_BASE_URL: http://api:5000/api/v1
+      AGENTS_READONLY_EMAIL: ${AGENTS_READONLY_EMAIL:-agents-readonly@internal.local}
+      AGENTS_READONLY_PASSWORD: ${AGENTS_READONLY_PASSWORD:-}
+      AGENTS_PROCUREMENT_EMAIL: ${AGENTS_PROCUREMENT_EMAIL:-agents-procurement@internal.local}
+      AGENTS_PROCUREMENT_PASSWORD: ${AGENTS_PROCUREMENT_PASSWORD:-}
+      MONITORING_CRON_SCHEDULE: ${MONITORING_CRON_SCHEDULE:-*/30 * * * *}
+    volumes:
+      - ./agents:/app
+      - /app/node_modules
+
 volumes:
   mongo-data:

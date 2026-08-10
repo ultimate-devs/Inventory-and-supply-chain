@@ -26,6 +26,8 @@ MongoDB must be reachable at `MONGODB_URI` and running as a **single-node replic
 | `npm run test:coverage` | Same, with coverage; `src/services/**` is gated at 80% |
 | `npm run seed:download` | Download the DataCo Smart Supply Chain CSV used for seeding |
 | `npm run seed` | Parse the CSV and seed 5 categories / 50 real items / demand history + a Super Admin account |
+| `npm run seed:agents` | Create the two ADK agents service-account users (see below) |
+| `npm run benchmark:reports` | Prove the 7 report endpoints stay under 500ms at 10k items |
 | `npm run lint` | ESLint over `src/` |
 
 ## Seed data
@@ -51,6 +53,25 @@ Phase 2 modules, same layered pattern:
 - **GRN** (`grnService.js`) — `POST /purchase-orders/:id/receive` runs entirely inside one Mongo transaction: detects under/over-delivery per line, posts a `receipt` stock movement (which itself recalculates ROP/EOQ/stock-status and syncs the item's alert), resolves any `overdue_po` alert, and - once the PO is fully received - recalculates the supplier's performance score from that delivery.
 - **Alerts** (`alertService.js`) — `low_stock`/`critical_stock`/`excess_stock` alerts are kept in sync automatically by `Item`'s post-save hook; `overdue_po` alerts are raised by an hourly cron (`services/scheduler.js`) for any receivable PO past its expected delivery date. `GET /alerts/unread-count` backs the notification bell.
 - **Algorithms/Greedy** (`algorithmService.js`) — pulls real low-stock/critical items, scores each by urgency and cost-to-clear, then runs the Greedy (urgency-first) and Proportional (water-filling) allocators side by side; every comparison run is saved to `GreedyRun` for the history page.
+
+## ADK agents (`agents/`) and the agent-to-API auth flow
+
+A sibling service at `../agents` (separate Node 24 project, own `package.json`/Dockerfile) runs four Gemini-backed agents (Monitoring, Advisory, Analytics, Procurement) built on Google's Agent Development Kit (`@google/adk`). It talks to this API over plain HTTP - it never touches MongoDB directly and never bypasses RBAC.
+
+**Auth flow**: there is no separate token-issuance mechanism for services. The agents process authenticates exactly the way any human client does - `POST /auth/login` with a stored email/password, caching the returned access token and logging in again shortly before it expires (or immediately on a `401`). Two service-account `User` documents exist for this, created by `npm run seed:agents` (`scripts/seedServiceAgents.js`, idempotent - re-running it leaves existing accounts untouched):
+
+| Account | Role | Used by |
+|---|---|---|
+| `agents-readonly@internal.local` | `ANALYST` | Monitoring, Advisory, Analytics agents (read-only) |
+| `agents-procurement@internal.local` | `PROCUREMENT_OFFICER` | Procurement agent (creates suppliers/draft POs) |
+
+Both are flagged `isServiceAccount: true` on the `User` model (also surfaced on `req.user` by `protect`) purely so audit trails and the future frontend "Agent Insights" panel can tell an agent-driven action apart from a human one at a glance - it has no effect on authorization, which is still just the normal `role` + `authorize(...)` check every other request goes through.
+
+**Every agent insight/recommendation is recorded via `POST /api/v1/agent-logs`** (new `AgentLog` model), which `relatedModel`/`relatedId` ties back to the specific record it's about (an `Alert`, a `GreedyRun`, a `PurchaseOrder`, ...) rather than being a free-floating text blob. `GET /api/v1/agent-logs` is readable by any authenticated role. Agent actions are also written to the existing `AuditLog` via `recordAuditEvent`, with `action` prefixed `agent.<type>.<action>` so they're distinguishable from human-triggered entries in the same trail.
+
+**The Procurement agent cannot approve a purchase order it creates, structurally, not just by convention**: its toolset only wraps `POST /purchase-orders` (creates a `draft`) and `POST /purchase-orders/:id/submit` (starts the existing two-*different*-human-approver flow) - it is simply never given a tool that calls `/approve`. If `GET /suppliers/recommend` finds no eligible supplier (`recommended: null` - an expected outcome, not an error), the agent reports the gap instead of drafting a PO.
+
+See `agents/.env.example` for the env vars the agents service needs (`GEMINI_API_KEY`, `API_BASE_URL`, the two service-account credentials) and `docker-compose.yml`'s `agents` service block for how it's wired up alongside `api`/`mongo`.
 
 ## Testing
 

@@ -6,6 +6,7 @@ import { computeUrgencyScore, computeQuantityNeeded } from './algorithms/urgency
 import { runGreedyAllocation } from './algorithms/greedyAllocation.js';
 import { runProportionalAllocation } from './algorithms/proportionalAllocation.js';
 import { compareAllocations } from './algorithms/algorithmComparison.js';
+import { runRopEoqScenario } from './algorithms/ropEoqScenario.js';
 
 /**
  * Real low-stock/critical items, turned into allocator candidates. Optionally
@@ -68,6 +69,8 @@ export const runComparisonAndSave = async (budget, itemIds, userId) => {
 
   return { run, deltas };
 };
+
+export const ropEoqScenario = (input) => runRopEoqScenario(input);
 
 export const listGreedyRuns = async (query) => {
   const { page, limit, skip } = parsePagination(query, { defaultLimit: 20 });

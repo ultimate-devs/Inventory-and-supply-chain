@@ -2,6 +2,11 @@ import * as algorithmService from '../services/algorithmService.js';
 import { asyncHandler, sendResponse } from '../utils/sendResponse.js';
 import { recordAuditEvent } from '../middleware/auditLog.js';
 
+export const ropEoqScenario = asyncHandler(async (req, res) => {
+  const result = algorithmService.ropEoqScenario(req.body);
+  sendResponse(res, 200, { data: result, message: 'ROP/EOQ scenario computed' });
+});
+
 export const candidates = asyncHandler(async (req, res) => {
   const items = await algorithmService.previewCandidates();
   sendResponse(res, 200, { data: items, message: 'Low-stock candidate items retrieved' });

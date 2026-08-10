@@ -3,11 +3,29 @@ import * as algorithmController from '../controllers/algorithmController.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { writeLimiter } from '../middleware/rateLimiters.js';
-import { allocationValidators } from '../validators/algorithmValidators.js';
+import { allocationValidators, ropEoqScenarioValidators } from '../validators/algorithmValidators.js';
 
 const router = Router();
 
 router.use(protect);
+
+/**
+ * @openapi
+ * /algorithms/rop-eoq-scenario:
+ *   post:
+ *     summary: Compute ROP (simple + probabilistic) and EOQ for arbitrary what-if inputs, not tied to a saved item
+ *     tags: [Algorithms]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: ROP/EOQ scenario computed }
+ */
+router.post(
+  '/rop-eoq-scenario',
+  writeLimiter,
+  ropEoqScenarioValidators,
+  validate,
+  algorithmController.ropEoqScenario,
+);
 
 /**
  * @openapi

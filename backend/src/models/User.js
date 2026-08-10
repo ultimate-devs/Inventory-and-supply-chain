@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: ALL_ROLES, default: ROLES.ANALYST },
     isActive: { type: Boolean, default: true },
+    // Marks the small set of headless accounts the ADK agents/ service logs
+    // in as, so audit trails and the future Agent Insights UI can tell an
+    // agent-driven action apart from a human one at a glance.
+    isServiceAccount: { type: Boolean, default: false },
     lastLoginAt: { type: Date },
     refreshTokens: { type: [refreshTokenSchema], default: [], select: false },
     passwordResetTokenHash: { type: String, select: false },
@@ -55,6 +59,7 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     email: this.email,
     role: this.role,
     isActive: this.isActive,
+    isServiceAccount: this.isServiceAccount,
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
   };
