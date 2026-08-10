@@ -149,6 +149,9 @@ export const approvePurchaseOrder = async (id, userId, note, expectedVersion) =>
   if (po.status !== PO_STATUS.SUBMITTED) {
     throw ApiError.badRequest(`Cannot approve a purchase order in status ${po.status}`);
   }
+  if (po.requestedBy.toString() === userId) {
+    throw ApiError.badRequest('The purchase order requester cannot approve their own purchase order');
+  }
 
   const approvalsSoFar = po.approvals.filter((a) => a.decision === 'approved');
   const nextLevel = approvalsSoFar.length + 1;

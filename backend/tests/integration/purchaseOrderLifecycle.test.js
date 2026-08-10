@@ -173,6 +173,37 @@ describe('Purchase order full lifecycle: create -> approve -> send -> receive ->
     expect(secondApproval.body.data.approvals).toHaveLength(2);
   });
 
+  it('prevents a Super Admin from approving a purchase order they raised themselves', async () => {
+    // Super Admin is authorized for both the request-side and approve-side
+    // routes, so role checks alone don't stop a requester approving their
+    // own PO - this must be enforced in the service.
+    const adminToken = await loginAs('po-selfapprove-admin@example.com', ROLES.SUPER_ADMIN);
+    const managerToken = await loginAs('po-selfapprove-manager@example.com', ROLES.INVENTORY_MANAGER);
+    const admin = as(adminToken);
+    const manager = as(managerToken);
+
+    const { itemId, supplierId } = await setupSupplierAndItem(admin, manager);
+
+    const create = await admin(request(app).post('/api/v1/purchase-orders')).send({
+      supplier: supplierId,
+      lines: [{ item: itemId, quantity: 5, unitPrice: 2 }],
+    });
+    const poId = create.body.data._id;
+
+    await admin(request(app).post(`/api/v1/purchase-orders/${poId}/submit`)).send({ version: 0 });
+
+    const selfApprove = await admin(request(app).post(`/api/v1/purchase-orders/${poId}/approve`)).send({
+      version: 1,
+    });
+    expect(selfApprove.status).toBe(400);
+
+    const otherApprove = await manager(request(app).post(`/api/v1/purchase-orders/${poId}/approve`)).send({
+      version: 1,
+    });
+    expect(otherApprove.status).toBe(200);
+    expect(otherApprove.body.data.status).toBe('approved');
+  });
+
   it('handles a partial under-delivery followed by the remainder, and detects an over-delivery', async () => {
     const procurementToken = await loginAs('po4-procurement@example.com', ROLES.PROCUREMENT_OFFICER);
     const managerToken = await loginAs('po4-manager@example.com', ROLES.INVENTORY_MANAGER);
