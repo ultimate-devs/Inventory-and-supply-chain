@@ -6,6 +6,7 @@ import { SystemSettings } from '../models/SystemSettings.js';
 import { getNextSequence } from '../models/Counter.js';
 import { ApiError } from '../utils/ApiError.js';
 import { parsePagination, buildMeta } from '../utils/pagination.js';
+import { canTransition, statusesLeadingTo } from './purchaseOrderStateMachine.js';
 
 const generatePoNumber = async () => {
   const year = new Date().getFullYear();
@@ -104,9 +105,12 @@ export const updateDraftPurchaseOrder = async (id, { lines, expectedDeliveryDate
  * Every status-changing write is a single conditional findOneAndUpdate keyed
  * on `version` (optimistic lock): if another request already moved the PO,
  * the match fails and we tell the caller to refresh rather than silently
- * clobbering their view of the world.
+ * clobbering their view of the world. The set of statuses a PO may move
+ * *from* to reach `toStatus` comes from purchaseOrderStateMachine.js, not a
+ * literal array here, so the lifecycle rules live in exactly one place.
  */
-const applyTransition = async ({ id, expectedVersion, fromStatuses, toStatus, userId, note, extraSet = {} }) => {
+const applyTransition = async ({ id, expectedVersion, toStatus, userId, note, extraSet = {} }) => {
+  const fromStatuses = statusesLeadingTo(toStatus);
   const po = await PurchaseOrder.findOneAndUpdate(
     { _id: id, version: expectedVersion, status: { $in: fromStatuses } },
     {
@@ -136,7 +140,6 @@ export const submitPurchaseOrder = async (id, userId, expectedVersion) => {
   return applyTransition({
     id,
     expectedVersion,
-    fromStatuses: [PO_STATUS.DRAFT],
     toStatus: PO_STATUS.SUBMITTED,
     userId,
     extraSet: { requiresSecondApproval },
@@ -146,7 +149,7 @@ export const submitPurchaseOrder = async (id, userId, expectedVersion) => {
 export const approvePurchaseOrder = async (id, userId, note, expectedVersion) => {
   const po = await PurchaseOrder.findById(id);
   if (!po) throw ApiError.notFound('Purchase order not found');
-  if (po.status !== PO_STATUS.SUBMITTED) {
+  if (!canTransition(po.status, PO_STATUS.APPROVED)) {
     throw ApiError.badRequest(`Cannot approve a purchase order in status ${po.status}`);
   }
   if (po.requestedBy.toString() === userId) {
@@ -175,7 +178,7 @@ export const approvePurchaseOrder = async (id, userId, note, expectedVersion) =>
   if (isFinalApproval) update.$set = { status: PO_STATUS.APPROVED };
 
   const updated = await PurchaseOrder.findOneAndUpdate(
-    { _id: id, version: expectedVersion, status: PO_STATUS.SUBMITTED },
+    { _id: id, version: expectedVersion, status: { $in: statusesLeadingTo(PO_STATUS.APPROVED) } },
     update,
     { new: true },
   );
@@ -188,12 +191,12 @@ export const approvePurchaseOrder = async (id, userId, note, expectedVersion) =>
 export const rejectPurchaseOrder = async (id, userId, note, expectedVersion) => {
   const po = await PurchaseOrder.findById(id);
   if (!po) throw ApiError.notFound('Purchase order not found');
-  if (po.status !== PO_STATUS.SUBMITTED) {
+  if (!canTransition(po.status, PO_STATUS.REJECTED)) {
     throw ApiError.badRequest(`Cannot reject a purchase order in status ${po.status}`);
   }
 
   const updated = await PurchaseOrder.findOneAndUpdate(
-    { _id: id, version: expectedVersion, status: PO_STATUS.SUBMITTED },
+    { _id: id, version: expectedVersion, status: { $in: statusesLeadingTo(PO_STATUS.REJECTED) } },
     {
       $set: { status: PO_STATUS.REJECTED },
       $inc: { version: 1 },
@@ -211,20 +214,13 @@ export const rejectPurchaseOrder = async (id, userId, note, expectedVersion) => 
 };
 
 export const sendPurchaseOrder = (id, userId, expectedVersion) =>
-  applyTransition({ id, expectedVersion, fromStatuses: [PO_STATUS.APPROVED], toStatus: PO_STATUS.SENT, userId });
+  applyTransition({ id, expectedVersion, toStatus: PO_STATUS.SENT, userId });
 
 export const shipPurchaseOrder = (id, userId, expectedVersion) =>
-  applyTransition({ id, expectedVersion, fromStatuses: [PO_STATUS.SENT], toStatus: PO_STATUS.SHIPPED, userId });
+  applyTransition({ id, expectedVersion, toStatus: PO_STATUS.SHIPPED, userId });
 
 export const cancelPurchaseOrder = (id, userId, note, expectedVersion) =>
-  applyTransition({
-    id,
-    expectedVersion,
-    fromStatuses: [PO_STATUS.DRAFT, PO_STATUS.SUBMITTED, PO_STATUS.APPROVED, PO_STATUS.SENT, PO_STATUS.SHIPPED],
-    toStatus: PO_STATUS.CANCELLED,
-    userId,
-    note,
-  });
+  applyTransition({ id, expectedVersion, toStatus: PO_STATUS.CANCELLED, userId, note });
 
 export const deleteDraftPurchaseOrder = async (id) => {
   const po = await PurchaseOrder.findById(id);

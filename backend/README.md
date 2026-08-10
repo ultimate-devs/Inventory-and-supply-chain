@@ -71,7 +71,9 @@ Both are flagged `isServiceAccount: true` on the `User` model (also surfaced on 
 
 **The Procurement agent cannot approve a purchase order it creates, structurally, not just by convention**: its toolset only wraps `POST /purchase-orders` (creates a `draft`) and `POST /purchase-orders/:id/submit` (starts the existing two-*different*-human-approver flow) - it is simply never given a tool that calls `/approve`. If `GET /suppliers/recommend` finds no eligible supplier (`recommended: null` - an expected outcome, not an error), the agent reports the gap instead of drafting a PO.
 
-See `agents/.env.example` for the env vars the agents service needs (`GEMINI_API_KEY`, `API_BASE_URL`, the two service-account credentials) and `docker-compose.yml`'s `agents` service block for how it's wired up alongside `api`/`mongo`.
+**The agents service's own HTTP API requires a second, separate secret**: `POST /run/{advisory,analytics,procurement}` on port 4000 has no per-caller identity of its own (it always acts as the pre-authenticated service account), so every request must carry an `x-internal-api-key` header matching `AGENTS_INTERNAL_API_KEY`, checked in constant time and failing closed if the server-side key is unset - otherwise anyone who could merely reach port 4000 could trigger the Procurement agent to draft/submit real purchase orders, or read internal reports, for free.
+
+See `agents/.env.example` for the env vars the agents service needs (`GEMINI_API_KEY`, `API_BASE_URL`, `AGENTS_INTERNAL_API_KEY`, the two service-account credentials) and `docker-compose.yml`'s `agents` service block for how it's wired up alongside `api`/`mongo`.
 
 ## Testing
 

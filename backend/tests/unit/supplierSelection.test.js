@@ -1,4 +1,9 @@
-import { rankSuppliersForItem, recommendSupplierForItem } from '../../src/services/algorithms/supplierSelection.js';
+import {
+  rankSuppliersForItem,
+  recommendSupplierForItem,
+  selectSupplierForItem,
+  SUPPLIER_SELECTION_STATUS,
+} from '../../src/services/algorithms/supplierSelection.js';
 
 describe('greedy supplier selection', () => {
   it('returns an empty list for no candidates', () => {
@@ -41,5 +46,32 @@ describe('greedy supplier selection', () => {
     expect(ranked[0].leadTimeScore).toBe(100);
     // price/lead time tied -> performance score alone decides the winner
     expect(ranked[0].supplierId).toBe('b');
+  });
+});
+
+describe('selectSupplierForItem (typed no-supplier result)', () => {
+  it('returns a NO_SUPPLIER_AVAILABLE status (not a throw) when nothing is eligible', () => {
+    const result = selectSupplierForItem([]);
+    expect(result).toEqual({
+      status: SUPPLIER_SELECTION_STATUS.NO_SUPPLIER_AVAILABLE,
+      recommended: null,
+      ranked: [],
+    });
+  });
+
+  it('returns NO_SUPPLIER_AVAILABLE when every candidate is ineligible', () => {
+    const candidates = [{ supplierId: 'a', unitPrice: 10, leadTimeDays: 5, performanceScore: 90, status: 'suspended' }];
+    const result = selectSupplierForItem(candidates);
+    expect(result.status).toBe(SUPPLIER_SELECTION_STATUS.NO_SUPPLIER_AVAILABLE);
+    expect(result.recommended).toBeNull();
+    expect(result.ranked).toEqual([]);
+  });
+
+  it('returns a SUCCESS status with the top-ranked candidate when one is eligible', () => {
+    const candidates = [{ supplierId: 'a', unitPrice: 10, leadTimeDays: 5, performanceScore: 90, status: 'approved' }];
+    const result = selectSupplierForItem(candidates);
+    expect(result.status).toBe(SUPPLIER_SELECTION_STATUS.SUCCESS);
+    expect(result.recommended.supplierId).toBe('a');
+    expect(result.ranked).toHaveLength(1);
   });
 });

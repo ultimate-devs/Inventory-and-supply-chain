@@ -7,6 +7,7 @@ import purchaseOrdersReducer from './slices/purchaseOrdersSlice';
 import algorithmsReducer from './slices/algorithmsSlice';
 import alertsReducer from './slices/alertsSlice';
 import reportsReducer from './slices/reportsSlice';
+import agentLogsReducer from './slices/agentLogsSlice';
 import { setAuthHandlers } from '../lib/apiClient';
 
 export const store = configureStore({
@@ -19,6 +20,7 @@ export const store = configureStore({
     algorithms: algorithmsReducer,
     alerts: alertsReducer,
     reports: reportsReducer,
+    agentLogs: agentLogsReducer,
   },
 });
 

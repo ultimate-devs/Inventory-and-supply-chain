@@ -65,6 +65,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4000
+      AGENTS_INTERNAL_API_KEY: ${AGENTS_INTERNAL_API_KEY:-dev-internal-agents-key}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       API_BASE_URL: http://api:5000/api/v1
       AGENTS_READONLY_EMAIL: ${AGENTS_READONLY_EMAIL:-agents-readonly@internal.local}

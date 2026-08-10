@@ -1,5 +1,6 @@
 import express from 'express';
 import cron from 'node-cron';
+import { timingSafeEqual } from 'node:crypto';
 import { env } from './env.js';
 import { runAgentOnce } from './runAgent.js';
 import { recordAgentLog } from './agentLogClient.js';
@@ -17,6 +18,27 @@ app.get('/health', (req, res) => {
 });
 
 /**
+ * Every /run/* route drives a Gemini agent that acts through this service's
+ * own privileged backend service-account credentials (draft/submit real
+ * purchase orders, read internal reports) - unlike the backend API, there is
+ * no per-caller identity to authorize here, just "is this caller trusted to
+ * invoke this service at all". A single shared secret, compared in constant
+ * time, is enough to keep it out of reach of anyone who merely has network
+ * access to the port. Fails closed: an unset server-side key rejects every
+ * request rather than accepting them unauthenticated.
+ */
+const requireInternalApiKey = (req, res, next) => {
+  const expected = env.internalApiKey;
+  const provided = req.get('x-internal-api-key') ?? '';
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+
+  const valid = expectedBuf.length > 0 && expectedBuf.length === providedBuf.length && timingSafeEqual(expectedBuf, providedBuf);
+  if (!valid) return res.status(401).json({ message: 'Invalid or missing internal API key' });
+  next();
+};
+
+/**
  * Runs one agent for a single request, logs its output to the backend's
  * AgentLog, and returns the narrative. `action` and `relatedModel`/`relatedId`
  * describe what this particular run was about, for traceability.
@@ -27,7 +49,7 @@ const runAndLog = async ({ agentType, agent, message, action, relatedModel, rela
   return { summary, log };
 };
 
-app.post('/run/advisory', async (req, res, next) => {
+app.post('/run/advisory', requireInternalApiKey, async (req, res, next) => {
   try {
     const { message, action = 'scenario_review', relatedModel, relatedId } = req.body ?? {};
     if (!message) return res.status(400).json({ message: 'message is required' });
@@ -47,7 +69,7 @@ app.post('/run/advisory', async (req, res, next) => {
   }
 });
 
-app.post('/run/analytics', async (req, res, next) => {
+app.post('/run/analytics', requireInternalApiKey, async (req, res, next) => {
   try {
     const { message, action = 'report_review', relatedModel, relatedId } = req.body ?? {};
     if (!message) return res.status(400).json({ message: 'message is required' });
@@ -67,7 +89,7 @@ app.post('/run/analytics', async (req, res, next) => {
   }
 });
 
-app.post('/run/procurement', async (req, res, next) => {
+app.post('/run/procurement', requireInternalApiKey, async (req, res, next) => {
   try {
     const { message, action = 'supplier_review', relatedModel, relatedId } = req.body ?? {};
     if (!message) return res.status(400).json({ message: 'message is required' });

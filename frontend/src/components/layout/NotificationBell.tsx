@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Check, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchAlerts, fetchUnreadCount, acknowledgeAlert } from '../../store/slices/alertsSlice';
@@ -20,6 +21,7 @@ const SEVERITY_COLOR: Record<AlertSeverity, string> = {
 
 const NotificationBell = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { alerts, unreadCount } = useAppSelector((state) => state.alerts);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,15 @@ const NotificationBell = () => {
               );
             })}
           </div>
+          <button
+            onClick={() => {
+              setOpen(false);
+              navigate('/alerts');
+            }}
+            className="block w-full rounded-b-xl border-t border-slate-100 px-4 py-2.5 text-center text-sm font-medium text-primary-600 hover:bg-slate-50 dark:border-slate-800 dark:text-primary-400 dark:hover:bg-slate-800/60"
+          >
+            View all alerts
+          </button>
         </div>
       )}
     </div>

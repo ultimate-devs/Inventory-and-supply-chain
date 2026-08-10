@@ -2,7 +2,7 @@ import { Supplier, SUPPLIER_STATUS } from '../models/Supplier.js';
 import { Item } from '../models/Item.js';
 import { ApiError } from '../utils/ApiError.js';
 import { parsePagination, buildMeta } from '../utils/pagination.js';
-import { rankSuppliersForItem } from './algorithms/supplierSelection.js';
+import { selectSupplierForItem } from './algorithms/supplierSelection.js';
 
 const EDITABLE_FIELDS = ['name', 'contactName', 'contactEmail', 'contactPhone', 'address'];
 
@@ -124,6 +124,5 @@ export const recommendSuppliersForItem = async (itemId) => {
     };
   });
 
-  const ranked = rankSuppliersForItem(candidates);
-  return { ranked, recommended: ranked[0] ?? null };
+  return selectSupplierForItem(candidates);
 };

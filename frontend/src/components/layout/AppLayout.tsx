@@ -16,6 +16,8 @@ import {
   Calculator,
   Shuffle,
   FileBarChart,
+  Bot,
+  BellRing,
 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from './NotificationBell';
@@ -38,8 +40,10 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/rop-eoq-calculator', label: 'ROP/EOQ Calculator', icon: Calculator, roles: null },
   { to: '/suppliers', label: 'Suppliers', icon: Truck, roles: null },
   { to: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList, roles: null },
+  { to: '/alerts', label: 'Alerts', icon: BellRing, roles: null },
   { to: '/algorithms/greedy', label: 'Greedy Allocation', icon: Shuffle, roles: null },
   { to: '/reports/stock-turnover', label: 'Reports', icon: FileBarChart, roles: null },
+  { to: '/agent-insights', label: 'Agent Insights', icon: Bot, roles: null },
   { to: '/users', label: 'Users', icon: Users, roles: [ROLES.SUPER_ADMIN] },
   { to: '/settings', label: 'Settings', icon: Settings, roles: [ROLES.SUPER_ADMIN] },
 ];

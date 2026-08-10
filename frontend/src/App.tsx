@@ -36,6 +36,8 @@ import BudgetUtilisationPage from './pages/reports/BudgetUtilisationPage';
 import SupplierPerformanceRadarPage from './pages/reports/SupplierPerformanceRadarPage';
 import PurchaseOrderPipelinePage from './pages/reports/PurchaseOrderPipelinePage';
 import CategorySpendPage from './pages/reports/CategorySpendPage';
+import AgentInsightsPage from './pages/AgentInsightsPage';
+import AlertsPage from './pages/AlertsPage';
 
 const HomeGuard = ({ children }: { children: ReactNode }) => {
   const status = useAppSelector((state) => state.auth.status);
@@ -96,6 +98,9 @@ function App() {
           <Route path="/reports/supplier-performance" element={<SupplierPerformanceRadarPage />} />
           <Route path="/reports/po-pipeline" element={<PurchaseOrderPipelinePage />} />
           <Route path="/reports/category-spend" element={<CategorySpendPage />} />
+
+          <Route path="/agent-insights" element={<AgentInsightsPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
 
           <Route element={<ProtectedRoute roles={[ROLES.SUPER_ADMIN]} />}>
             <Route path="/users" element={<UserManagementPage />} />

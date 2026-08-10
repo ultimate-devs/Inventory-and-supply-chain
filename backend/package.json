@@ -15,6 +15,7 @@
     "seed:download": "node scripts/downloadDataCoDataset.js",
     "seed:agents": "node scripts/seedServiceAgents.js",
     "benchmark:reports": "node scripts/benchmarkReports.js",
+    "benchmark:reports:local": "node scripts/benchmarkReportsLocal.js",
     "lint": "eslint src"
   },
   "dependencies": {

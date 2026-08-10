@@ -9,10 +9,7 @@ const recommendSupplierTool = new FunctionTool({
     'A null "recommended" field means no approved supplier currently carries the item - this is a normal, expected ' +
     'outcome to report, not an error to retry.',
   parameters: z.object({ itemId: z.string().describe('The item id to find a supplier for') }),
-  execute: async ({ itemId }) => {
-    const result = await procurementClient.get(`/suppliers/recommend?item=${itemId}`);
-    return { status: result.recommended ? 'success' : 'no_supplier_available', ...result };
-  },
+  execute: async ({ itemId }) => procurementClient.get(`/suppliers/recommend?item=${itemId}`),
 });
 
 const createDraftPoTool = new FunctionTool({

@@ -42,3 +42,20 @@ export const rankSuppliersForItem = (candidates = []) => {
 };
 
 export const recommendSupplierForItem = (candidates = []) => rankSuppliersForItem(candidates)[0] ?? null;
+
+// Typed outcome for "pick a supplier for this item" callers (supplierService,
+// and transitively the Procurement agent's recommend_supplier tool) - a
+// missing supplier is a normal, handleable result to branch on, never an
+// exception to catch.
+export const SUPPLIER_SELECTION_STATUS = Object.freeze({
+  SUCCESS: 'success',
+  NO_SUPPLIER_AVAILABLE: 'no_supplier_available',
+});
+
+export const selectSupplierForItem = (candidates = []) => {
+  const ranked = rankSuppliersForItem(candidates);
+  if (ranked.length === 0) {
+    return { status: SUPPLIER_SELECTION_STATUS.NO_SUPPLIER_AVAILABLE, recommended: null, ranked: [] };
+  }
+  return { status: SUPPLIER_SELECTION_STATUS.SUCCESS, recommended: ranked[0], ranked };
+};

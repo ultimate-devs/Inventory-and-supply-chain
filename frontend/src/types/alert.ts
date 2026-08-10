@@ -1,4 +1,4 @@
-export type AlertType = 'low_stock' | 'critical_stock' | 'excess_stock' | 'overdue_po';
+export type AlertType = 'low_stock' | 'critical_stock' | 'excess_stock' | 'overdue_po' | 'quantity_discrepancy';
 export type AlertSeverity = 'info' | 'warning' | 'critical';
 export type AlertStatus = 'open' | 'acknowledged' | 'resolved';
 

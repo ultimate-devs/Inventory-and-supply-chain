@@ -85,7 +85,10 @@ export interface RankedSupplierCandidate {
   compositeScore: number;
 }
 
+export type SupplierSelectionStatus = 'success' | 'no_supplier_available';
+
 export interface SupplierRecommendation {
+  status: SupplierSelectionStatus;
   ranked: RankedSupplierCandidate[];
   recommended: RankedSupplierCandidate | null;
 }

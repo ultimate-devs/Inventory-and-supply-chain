@@ -24,4 +24,12 @@ export const env = {
     password: process.env.AGENTS_PROCUREMENT_PASSWORD || '',
   },
   monitoringCronSchedule: process.env.MONITORING_CRON_SCHEDULE || '*/30 * * * *',
+  // Shared secret this service's own HTTP API (POST /run/*) requires on every
+  // caller via the `x-internal-api-key` header - without it, anyone who can
+  // reach this port could trigger the Procurement agent to draft/submit real
+  // purchase orders, or the Analytics/Advisory agents to read internal
+  // reports, using the agents service's own privileged backend credentials.
+  // Left unset (not defaulted) so a missing key fails closed rather than
+  // silently accepting unauthenticated requests.
+  internalApiKey: process.env.AGENTS_INTERNAL_API_KEY || '',
 };

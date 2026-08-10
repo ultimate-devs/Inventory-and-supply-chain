@@ -8,12 +8,14 @@ type AsyncStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 interface AlertsState {
   alerts: Alert[];
   alertsStatus: AsyncStatus;
+  alertsError: string | null;
   unreadCount: number;
 }
 
 const initialState: AlertsState = {
   alerts: [],
   alertsStatus: 'idle',
+  alertsError: null,
   unreadCount: 0,
 };
 
@@ -63,13 +65,15 @@ const alertsSlice = createSlice({
     builder
       .addCase(fetchAlerts.pending, (state) => {
         state.alertsStatus = 'loading';
+        state.alertsError = null;
       })
       .addCase(fetchAlerts.fulfilled, (state, action) => {
         state.alertsStatus = 'succeeded';
         state.alerts = action.payload.data;
       })
-      .addCase(fetchAlerts.rejected, (state) => {
+      .addCase(fetchAlerts.rejected, (state, action) => {
         state.alertsStatus = 'failed';
+        state.alertsError = (action.payload as string) ?? 'Unable to load alerts';
       })
 
       .addCase(fetchUnreadCount.fulfilled, (state, action) => {
