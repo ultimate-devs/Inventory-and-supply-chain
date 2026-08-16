@@ -34,17 +34,17 @@ Swagger docs: `http://localhost:5000/api/docs`. Seeded Super Admin login: `admin
 
 Run MongoDB yourself as a single-node replica set, point `backend/.env`'s `MONGODB_URI` at it, then run `npm run dev` in both `backend/` and `frontend/` as above.
 
-## Team & phase status
+## functions
 
 Team ownership and engineering standards are documented in the project briefs (not in this repo). At a glance:
 
-**Phase 1** delivers:
+
 - Real JWT auth (rotating refresh tokens, httpOnly cookie) with 4 roles enforced server-side
 - Category/Item CRUD with automatic ROP (simple + probabilistic) and EOQ (Wilson formula) recalculation
 - Transactional stock movements, an hourly recalculation cron, and a live dashboard
 - Swagger docs, an audit log, ≥80% test coverage on `backend/src/services/**`, and a seed script driven by the real DataCo Smart Supply Chain dataset
 
-**Phase 2** delivers:
+
 - Supplier CRUD, item catalogue (price/lead time), a four-metric performance score (on-time rate, accuracy, lead-time reliability, price consistency), approve/suspend status, and greedy supplier recommendation
 - The full purchase order lifecycle - draft → submitted → approved/rejected → sent → shipped → partially/fully received → cancelled - with two-level approval above a configurable value threshold and optimistic locking (`version` field) on every transition
 - Goods receipt (GRN) with under/over-delivery discrepancy detection, atomic stock update + alert resolution + supplier score recalculation in a single Mongo transaction
