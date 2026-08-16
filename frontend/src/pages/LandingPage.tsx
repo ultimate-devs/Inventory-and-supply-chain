@@ -53,8 +53,8 @@ const LandingPage = () => {
             delivery, quality, and cost - in one place.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Button variant="solid" className="px-6 py-3 text-base" onClick={() => navigate('/signup')}>
-              Get Started
+            <Button variant="solid" className="px-6 py-3 text-base" onClick={() => navigate('/login')}>
+              Sign In
             </Button>
             <Button variant="ghost" className="px-6 py-3 text-base" onClick={scrollToFeatures}>
               See Features
@@ -90,14 +90,14 @@ const LandingPage = () => {
         <div className="rounded-lg bg-primary-800 px-8 py-14 text-center text-white sm:px-16">
           <h2 className="text-2xl font-bold sm:text-3xl">Ready to get started?</h2>
           <p className="mx-auto mt-3 max-w-xl text-primary-100">
-            Create an account to start tracking inventory and managing purchase orders.
+            Sign in with your account to start tracking inventory and managing purchase orders.
           </p>
           <div className="mt-8 flex justify-center">
             <button
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/login')}
               className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-primary-800 transition-colors hover:bg-primary-50"
             >
-              Create free account
+              Sign In
             </button>
           </div>
         </div>

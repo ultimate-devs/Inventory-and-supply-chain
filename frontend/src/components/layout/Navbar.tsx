@@ -20,11 +20,8 @@ const Navbar = () => {
         </button>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Button variant="ghost" onClick={() => navigate('/login')}>
+          <Button variant="solid" onClick={() => navigate('/login')}>
             Login
-          </Button>
-          <Button variant="solid" onClick={() => navigate('/signup')}>
-            Sign Up
           </Button>
         </div>
       </nav>

@@ -4,35 +4,13 @@ import { validate } from '../middleware/validate.js';
 import { protect } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiters.js';
 import {
-  registerValidators,
   loginValidators,
   forgotPasswordValidators,
   resetPasswordValidators,
+  changePasswordValidators,
 } from '../validators/authValidators.js';
 
 const router = Router();
-
-/**
- * @openapi
- * /auth/register:
- *   post:
- *     summary: Register a new user account
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [name, email, password]
- *             properties:
- *               name: { type: string }
- *               email: { type: string }
- *               password: { type: string }
- *     responses:
- *       201: { description: Account created }
- */
-router.post('/register', authLimiter, registerValidators, validate, authController.register);
 
 /**
  * @openapi
@@ -98,6 +76,18 @@ router.post('/forgot-password', authLimiter, forgotPasswordValidators, validate,
  *       200: { description: Password reset }
  */
 router.post('/reset-password', authLimiter, resetPasswordValidators, validate, authController.resetPasswordHandler);
+
+/**
+ * @openapi
+ * /auth/change-password:
+ *   post:
+ *     summary: Change the current user's password (requires the current password)
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Password updated }
+ */
+router.post('/change-password', protect, changePasswordValidators, validate, authController.changePasswordHandler);
 
 /**
  * @openapi

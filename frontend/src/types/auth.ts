@@ -13,6 +13,7 @@ export interface User {
   email: string;
   role: Role;
   isActive: boolean;
+  mustChangePassword: boolean;
   lastLoginAt?: string;
   createdAt?: string;
 }
@@ -27,17 +28,16 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-}
-
 export interface ForgotPasswordPayload {
   email: string;
 }
 
 export interface ResetPasswordPayload {
   token: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
   newPassword: string;
 }

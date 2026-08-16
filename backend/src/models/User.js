@@ -33,6 +33,11 @@ const userSchema = new mongoose.Schema(
     refreshTokens: { type: [refreshTokenSchema], default: [], select: false },
     passwordResetTokenHash: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
+    // Set when an admin creates the account (see userController.createUser):
+    // the user must change their emailed temp password before using the app,
+    // and that temp password stops working after tempPasswordExpires.
+    mustChangePassword: { type: Boolean, default: false },
+    tempPasswordExpires: { type: Date, select: false },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },
@@ -60,6 +65,7 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     role: this.role,
     isActive: this.isActive,
     isServiceAccount: this.isServiceAccount,
+    mustChangePassword: this.mustChangePassword,
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
   };

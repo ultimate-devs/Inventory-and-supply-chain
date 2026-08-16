@@ -3,6 +3,10 @@ import { ApiError } from '../utils/ApiError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/sendResponse.js';
 
+// Routes a user with a pending forced password change may still reach -
+// everything else is blocked until they change it.
+const PASSWORD_CHANGE_ALLOWLIST = ['/api/v1/auth/change-password', '/api/v1/auth/logout', '/api/v1/auth/me'];
+
 export const protect = asyncHandler(async (req, res, next) => {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
@@ -22,7 +26,17 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw ApiError.unauthorized('Account not found or deactivated');
   }
 
-  req.user = { id: user._id.toString(), role: user.role, email: user.email, isServiceAccount: user.isServiceAccount };
+  if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWLIST.includes(req.originalUrl.split('?')[0])) {
+    throw ApiError.forbidden('You must change your password before continuing');
+  }
+
+  req.user = {
+    id: user._id.toString(),
+    role: user.role,
+    email: user.email,
+    isServiceAccount: user.isServiceAccount,
+    mustChangePassword: user.mustChangePassword,
+  };
   next();
 });
 

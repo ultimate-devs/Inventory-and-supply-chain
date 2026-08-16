@@ -46,3 +46,25 @@ export const sendPasswordResetEmail = async ({ to, resetUrl }) => {
     console.error('Failed to send password reset email:', err.message);
   }
 };
+
+export const sendUserInviteEmail = async ({ to, name, tempPassword, loginUrl }) => {
+  const message = {
+    from: env.email.from,
+    to,
+    subject: 'Your SupplyChain Pro account',
+    text: `Hi ${name},\n\nAn administrator created an account for you.\n\nEmail: ${to}\nTemporary password: ${tempPassword}\n\nThis temporary password expires in 24 hours. Sign in at ${loginUrl} and you will be asked to set a new password before you can continue.\n\nIf you weren't expecting this, contact your administrator.`,
+    html: `
+      <p>Hi ${name},</p>
+      <p>An administrator created an account for you.</p>
+      <p><strong>Email:</strong> ${to}<br /><strong>Temporary password:</strong> ${tempPassword}</p>
+      <p>This temporary password expires in 24 hours. <a href="${loginUrl}">Sign in</a> and you will be asked to set a new password before you can continue.</p>
+      <p>If you weren't expecting this, contact your administrator.</p>
+    `,
+  };
+
+  try {
+    await getTransporter().sendMail(message);
+  } catch (err) {
+    console.error('Failed to send user invite email:', err.message);
+  }
+};

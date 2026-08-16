@@ -31,18 +31,16 @@ describe('LandingPage', () => {
     mockNavigate.mockClear();
   });
 
-  it('renders Login and Sign Up buttons', () => {
+  it('renders Login and Sign In buttons', () => {
     renderLandingPage();
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /sign up|get started/i }).length).toBeGreaterThan(
-      0,
-    );
+    expect(screen.getAllByRole('button', { name: /sign in/i }).length).toBeGreaterThan(0);
   });
 
-  it('clicking Sign Up navigates to /signup', () => {
+  it('clicking the hero Sign In button navigates to /login', () => {
     renderLandingPage();
-    fireEvent.click(screen.getByRole('button', { name: /^sign up$/i }));
-    expect(mockNavigate).toHaveBeenCalledWith('/signup');
+    fireEvent.click(screen.getAllByRole('button', { name: /^sign in$/i })[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('/login');
   });
 
   it('clicking Login navigates to /login', () => {

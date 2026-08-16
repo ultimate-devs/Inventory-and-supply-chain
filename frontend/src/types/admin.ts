@@ -6,6 +6,7 @@ export interface AdminUser {
   email: string;
   role: Role;
   isActive: boolean;
+  mustChangePassword: boolean;
   lastLoginAt?: string;
   createdAt?: string;
 }
@@ -14,6 +15,12 @@ export interface UpdateUserPayload {
   name?: string;
   role?: Role;
   isActive?: boolean;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  role?: Role;
 }
 
 export interface SystemSettings {

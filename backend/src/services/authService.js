@@ -1,5 +1,4 @@
 import { User } from '../models/User.js';
-import { ROLES } from '../config/roles.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateRandomToken, hashToken } from '../utils/crypto.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
@@ -25,31 +24,18 @@ const issueTokenPair = async (user, ip) => {
   return { accessToken, refreshToken };
 };
 
-// Public self-registration always gets the least-privileged role. Role
-// elevation is an admin-only action via PUT /users/:id (see userController) -
-// letting callers pick their own role here would be a privilege-escalation hole.
-export const registerUser = async ({ name, email, password }) => {
-  const existing = await User.findOne({ email: email.toLowerCase() });
-  if (existing) {
-    throw ApiError.conflict('An account with this email already exists');
-  }
-  const passwordHash = await User.hashPassword(password);
-  const user = await User.create({
-    name,
-    email,
-    passwordHash,
-    role: ROLES.ANALYST,
-  });
-  return user;
-};
-
 export const loginUser = async ({ email, password, ip }) => {
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash +refreshTokens');
+  const user = await User.findOne({ email: email.toLowerCase() }).select(
+    '+passwordHash +refreshTokens +tempPasswordExpires',
+  );
   if (!user || !(await user.comparePassword(password))) {
     throw ApiError.unauthorized('Invalid email or password');
   }
   if (!user.isActive) {
     throw ApiError.forbidden('This account has been deactivated');
+  }
+  if (user.mustChangePassword && user.tempPasswordExpires && user.tempPasswordExpires < new Date()) {
+    throw ApiError.unauthorized('Your temporary password has expired. Ask an administrator to reset it.');
   }
 
   const tokens = await issueTokenPair(user, ip);
@@ -129,8 +115,24 @@ export const resetPassword = async ({ token, newPassword }) => {
   user.passwordHash = await User.hashPassword(newPassword);
   user.passwordResetTokenHash = undefined;
   user.passwordResetExpires = undefined;
+  user.mustChangePassword = false;
+  user.tempPasswordExpires = undefined;
   user.refreshTokens = []; // Invalidate all existing sessions on password change.
   await user.save();
+};
+
+export const changePassword = async ({ userId, currentPassword, newPassword }) => {
+  const user = await User.findById(userId).select('+passwordHash');
+  if (!user || !(await user.comparePassword(currentPassword))) {
+    throw ApiError.unauthorized('Current password is incorrect');
+  }
+
+  user.passwordHash = await User.hashPassword(newPassword);
+  user.mustChangePassword = false;
+  user.tempPasswordExpires = undefined;
+  await user.save();
+
+  return user;
 };
 
 export const REFRESH_COOKIE_NAME = 'refreshToken';

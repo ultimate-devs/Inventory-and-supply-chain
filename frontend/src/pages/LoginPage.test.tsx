@@ -40,7 +40,7 @@ describe('LoginPage', () => {
 
   it('navigates to the dashboard on a successful login', async () => {
     (authService.login as jest.Mock).mockResolvedValue({
-      user: { id: '1', name: 'Ada', email: 'ada@example.com', role: 'analyst', isActive: true },
+      user: { id: '1', name: 'Ada', email: 'ada@example.com', role: 'analyst', isActive: true, mustChangePassword: false },
       accessToken: 'token-123',
     });
 

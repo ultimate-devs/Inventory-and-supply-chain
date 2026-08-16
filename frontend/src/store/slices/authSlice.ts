@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../../services/authService';
 import { getApiErrorMessage, setAccessToken } from '../../lib/apiClient';
-import type { AuthResponse, LoginPayload, RegisterPayload, User } from '../../types/auth';
+import type { AuthResponse, ChangePasswordPayload, LoginPayload, User } from '../../types/auth';
 
 type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -45,15 +45,13 @@ export const login = createAsyncThunk<AuthResponse, LoginPayload, { rejectValue:
   },
 );
 
-// Backend registration does not log the user in (no token returned), so
-// SignupPage chains this with `login` to sign the new user in immediately.
-export const register = createAsyncThunk<User, RegisterPayload, { rejectValue: string }>(
-  'auth/register',
+export const changePassword = createAsyncThunk<User, ChangePasswordPayload, { rejectValue: string }>(
+  'auth/changePassword',
   async (payload, { rejectWithValue }) => {
     try {
-      return await authService.register(payload);
+      return await authService.changePassword(payload);
     } catch (err) {
-      return rejectWithValue(getApiErrorMessage(err, 'Unable to create account'));
+      return rejectWithValue(getApiErrorMessage(err, 'Unable to change password'));
     }
   },
 );
@@ -113,8 +111,8 @@ const authSlice = createSlice({
         state.status = 'unauthenticated';
         state.error = action.payload ?? 'Unable to sign in';
       })
-      .addCase(register.rejected, (state, action) => {
-        state.error = action.payload ?? 'Unable to create account';
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.user = action.payload;
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;

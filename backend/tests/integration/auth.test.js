@@ -21,31 +21,25 @@ afterAll(async () => {
 
 const credentials = { name: 'Ada Lovelace', email: 'ada@example.com', password: 'Sup3rSecret!' };
 
+const seedUser = async (overrides = {}) => {
+  const passwordHash = await User.hashPassword(overrides.password || credentials.password);
+  return User.create({
+    name: overrides.name || credentials.name,
+    email: overrides.email || credentials.email,
+    passwordHash,
+    role: overrides.role || ROLES.ANALYST,
+    isActive: overrides.isActive ?? true,
+  });
+};
+
 describe('Auth flow', () => {
-  it('registers a new user without leaking the password hash', async () => {
+  it('no longer exposes a public registration endpoint', async () => {
     const res = await request(app).post('/api/v1/auth/register').send(credentials);
-    expect(res.status).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.email).toBe(credentials.email);
-    expect(res.body.data.passwordHash).toBeUndefined();
-  });
-
-  it('rejects duplicate registration', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
-    const res = await request(app).post('/api/v1/auth/register').send(credentials);
-    expect(res.status).toBe(409);
-    expect(res.body.success).toBe(false);
-  });
-
-  it('rejects weak passwords', async () => {
-    const res = await request(app)
-      .post('/api/v1/auth/register')
-      .send({ ...credentials, password: 'short' });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(404);
   });
 
   it('logs in, sets a refresh cookie, and returns an access token', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const res = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: credentials.password });
@@ -56,7 +50,7 @@ describe('Auth flow', () => {
   });
 
   it('rejects login with the wrong password', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const res = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: 'WrongPass1' });
@@ -64,7 +58,7 @@ describe('Auth flow', () => {
   });
 
   it('protects routes and exposes the current user via /auth/me', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: credentials.password });
@@ -79,7 +73,7 @@ describe('Auth flow', () => {
   });
 
   it('rotates the refresh token on /auth/refresh and invalidates the old one', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: credentials.password });
@@ -96,7 +90,7 @@ describe('Auth flow', () => {
   });
 
   it('enforces RBAC: a non-admin cannot list users', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: credentials.password });
@@ -166,7 +160,7 @@ describe('Auth flow', () => {
   });
 
   it('logs out and invalidates the refresh cookie', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: credentials.email, password: credentials.password });
@@ -214,7 +208,7 @@ describe('Auth flow', () => {
   });
 
   it('supports the forgot/reset password flow and invalidates old sessions', async () => {
-    await request(app).post('/api/v1/auth/register').send(credentials);
+    await seedUser();
     const forgot = await request(app).post('/api/v1/auth/forgot-password').send({ email: credentials.email });
     expect(forgot.status).toBe(200);
     const { resetToken } = forgot.body.data;

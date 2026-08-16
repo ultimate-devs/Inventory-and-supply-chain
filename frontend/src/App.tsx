@@ -9,9 +9,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryListPage from './pages/InventoryListPage';
 import ItemDetailPage from './pages/ItemDetailPage';
@@ -66,13 +66,13 @@ function App() {
         }
       />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/inventory" element={<InventoryListPage />} />
