@@ -1,9 +1,11 @@
 import { LlmAgent } from '@google/adk';
 import { procurementTools } from '../tools/procurementTools.js';
+import { geminiModel } from '../geminiModel.js';
+import { env } from '../env.js';
 
 export const procurementAgent = new LlmAgent({
   name: 'procurement_agent',
-  model: 'gemini-flash-latest',
+  model: geminiModel(env.geminiApiKeyProcurement),
   description: 'Recommends suppliers and drafts purchase orders for human review - never approves anything itself.',
   instruction: `You are the Procurement Agent for an inventory and supply chain system.
 

@@ -26,6 +26,7 @@ MongoDB must be reachable at `MONGODB_URI` and running as a **single-node replic
 | `npm run test:coverage` | Same, with coverage; `src/services/**` is gated at 80% |
 | `npm run seed:download` | Download the DataCo Smart Supply Chain CSV used for seeding |
 | `npm run seed` | Parse the CSV and seed 5 categories / 50 real items / demand history + a Super Admin account |
+| `npm run seed:suppliers` | Seed suppliers + purchase orders against the items from `npm run seed` (see below) |
 | `npm run seed:agents` | Create the two ADK agents service-account users (see below) |
 | `npm run benchmark:reports` | Prove the 7 report endpoints stay under 500ms at 10k items |
 | `npm run lint` | ESLint over `src/` |
@@ -37,6 +38,8 @@ MongoDB must be reachable at `MONGODB_URI` and running as a **single-node replic
 `scripts/seedFromDataCo.js` documents its own derivation choices in detail, but in short: it groups the dataset's `Department Name` column (not the much narrower `Category Name` column) into 5 categories, picks the 10 most-ordered real products in each, and builds each product's 30-day demand history from the real 30-consecutive-day window with the most order activity in that product's own history. Everything downstream (unit cost, ROP, EOQ, stock status) is computed from that real data by the same code paths the API uses at runtime — nothing about the seed is faked beyond documented, labelled business assumptions (see the comment header in the script) for figures the dataset doesn't contain, like procurement cost.
 
 Also creates a Super Admin login from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` in `.env` (defaults: `admin@example.com` / `ChangeMe123!` — change these for anything beyond local dev).
+
+`npm run seed` only seeds items/categories from the DataCo CSV — it doesn't touch suppliers or purchase orders, so those sections are empty until you also run `npm run seed:suppliers` (`scripts/seedSuppliersAndPurchaseOrders.js`, idempotent). It creates 8 suppliers (approved/pending/suspended) with catalogues drawn from the seeded items, and 14 purchase orders spanning the full lifecycle (draft through received/cancelled), requested and approved by existing seeded users (a `procurement_officer` as requester, `inventory_manager`/`super_admin` as approvers — matching the "requester can't approve their own PO" and two-level-approval rules). Run it after `npm run seed`.
 
 ## Architecture
 

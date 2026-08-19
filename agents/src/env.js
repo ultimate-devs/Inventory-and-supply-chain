@@ -13,7 +13,16 @@ const required = (name, fallback) => {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 4000,
+  // Each agent authenticates to Gemini with its own API key/account so the
+  // four agents don't share a single free-tier quota (20 requests/min) -
+  // Monitoring keeps the original var since it's the lowest-traffic agent
+  // now that it's manual-trigger-only (see below); the other three fall
+  // back to it too if their own key isn't set, so a partial rollout still
+  // works, just with shared quota for whichever ones aren't configured yet.
   geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiApiKeyAdvisory: process.env.GEMINI_API_KEY_ADVISORY || process.env.GEMINI_API_KEY || '',
+  geminiApiKeyAnalytics: process.env.GEMINI_API_KEY_ANALYTICS || process.env.GEMINI_API_KEY || '',
+  geminiApiKeyProcurement: process.env.GEMINI_API_KEY_PROCUREMENT || process.env.GEMINI_API_KEY || '',
   apiBaseUrl: required('API_BASE_URL', 'http://localhost:5000/api/v1'),
   agentsReadonly: {
     email: required('AGENTS_READONLY_EMAIL', 'agents-readonly@internal.local'),
@@ -23,7 +32,6 @@ export const env = {
     email: required('AGENTS_PROCUREMENT_EMAIL', 'agents-procurement@internal.local'),
     password: process.env.AGENTS_PROCUREMENT_PASSWORD || '',
   },
-  monitoringCronSchedule: process.env.MONITORING_CRON_SCHEDULE || '*/30 * * * *',
   // Shared secret this service's own HTTP API (POST /run/*) requires on every
   // caller via the `x-internal-api-key` header - without it, anyone who can
   // reach this port could trigger the Procurement agent to draft/submit real

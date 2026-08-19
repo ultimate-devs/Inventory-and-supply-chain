@@ -1,5 +1,4 @@
 import express from 'express';
-import cron from 'node-cron';
 import { timingSafeEqual } from 'node:crypto';
 import { env } from './env.js';
 import { runAgentOnce } from './runAgent.js';
@@ -109,33 +108,40 @@ app.post('/run/procurement', requireInternalApiKey, async (req, res, next) => {
   }
 });
 
+app.post('/run/monitoring', requireInternalApiKey, async (req, res, next) => {
+  try {
+    const {
+      message = 'Review current inventory and purchase-order health and report anything that needs attention.',
+      action = 'manual_review',
+    } = req.body ?? {};
+
+    const result = await runAndLog({
+      agentType: AGENT_TYPES.MONITORING,
+      agent: monitoringAgent,
+      message,
+      action,
+      triggeredBy: AGENT_LOG_TRIGGER.MANUAL,
+    });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: err.message ?? 'Agent run failed' });
 });
 
-const runMonitoringSweep = async () => {
-  try {
-    await runAndLog({
-      agentType: AGENT_TYPES.MONITORING,
-      agent: monitoringAgent,
-      message: 'Review current inventory and purchase-order health and report anything that needs attention.',
-      action: 'periodic_review',
-      triggeredBy: AGENT_LOG_TRIGGER.CRON,
-    });
-  } catch (err) {
-    console.error('Monitoring sweep failed:', err);
-  }
-};
-
+// Monitoring used to also run on a cron schedule (AGENT_LOG_TRIGGER.CRON);
+// it's manual-trigger-only now, via POST /run/monitoring like every other
+// agent, so it only ever draws on its Gemini quota when a user actually
+// clicks "Run agents review".
 if (env.nodeEnv !== 'test') {
-  cron.schedule(env.monitoringCronSchedule, runMonitoringSweep);
-
   app.listen(env.port, () => {
     console.log(`Agents service listening on port ${env.port}`);
-    console.log(`Monitoring agent scheduled: ${env.monitoringCronSchedule}`);
   });
 }
 
-export { app, runMonitoringSweep };
+export { app };

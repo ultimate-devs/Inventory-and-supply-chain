@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle, PackagePlus, PackageMinus, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, PackagePlus, PackageMinus, SlidersHorizontal, Lightbulb } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchItemById, addStockMovement, clearSelectedItem } from '../store/slices/inventorySlice';
 import { itemService } from '../services/inventoryService';
@@ -10,6 +10,7 @@ import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Table from '../components/ui/Table';
+import AgentRunButton from '../components/agents/AgentRunButton';
 import type { TableColumn } from '../components/ui/Table';
 import type { MovementType, StockMovement } from '../types/inventory';
 
@@ -136,6 +137,18 @@ const ItemDetailPage = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <AgentRunButton
+            agentType="advisory"
+            label="Ask Advisory Agent"
+            modalTitle="Advisory Agent"
+            icon={<Lightbulb className="h-4 w-4" />}
+            buildPayload={() => ({
+              message: `Suggest a reorder policy for "${item.name}" (SKU ${item.sku}). Current stock is ${item.currentStock}, average daily demand is ${item.avgDailyDemand.toFixed(2)}, safety stock is ${item.safetyStock}, simple ROP is ${Math.round(item.reorderPointSimple)}, probabilistic ROP is ${Math.round(item.reorderPointProbabilistic)}, and EOQ is ${Math.round(item.economicOrderQuantity)}.`,
+              action: 'reorder_suggestion',
+              relatedModel: 'Item',
+              relatedId: item._id,
+            })}
+          />
           <Button variant="ghost" onClick={() => openModal('in')} className="inline-flex items-center gap-1.5">
             <PackagePlus className="h-4 w-4" />
             Stock In

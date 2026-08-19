@@ -51,6 +51,8 @@ services:
       EMAIL_USER: ${EMAIL_USER:-}
       EMAIL_PASS: ${EMAIL_PASS:-}
       EMAIL_FROM: ${EMAIL_FROM:-SupplyChain Pro <no-reply@supplychainpro.local>}
+      AGENTS_SERVICE_URL: http://agents:4000
+      AGENTS_INTERNAL_API_KEY: ${AGENTS_INTERNAL_API_KEY:-dev-internal-agents-key}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -67,12 +69,14 @@ services:
       PORT: 4000
       AGENTS_INTERNAL_API_KEY: ${AGENTS_INTERNAL_API_KEY:-dev-internal-agents-key}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY_ADVISORY: ${GEMINI_API_KEY_ADVISORY:-}
+      GEMINI_API_KEY_ANALYTICS: ${GEMINI_API_KEY_ANALYTICS:-}
+      GEMINI_API_KEY_PROCUREMENT: ${GEMINI_API_KEY_PROCUREMENT:-}
       API_BASE_URL: http://api:5000/api/v1
       AGENTS_READONLY_EMAIL: ${AGENTS_READONLY_EMAIL:-agents-readonly@internal.local}
       AGENTS_READONLY_PASSWORD: ${AGENTS_READONLY_PASSWORD:-}
       AGENTS_PROCUREMENT_EMAIL: ${AGENTS_PROCUREMENT_EMAIL:-agents-procurement@internal.local}
       AGENTS_PROCUREMENT_PASSWORD: ${AGENTS_PROCUREMENT_PASSWORD:-}
-      MONITORING_CRON_SCHEDULE: ${MONITORING_CRON_SCHEDULE:-*/30 * * * *}
     volumes:
       - ./agents:/app
       - /app/node_modules

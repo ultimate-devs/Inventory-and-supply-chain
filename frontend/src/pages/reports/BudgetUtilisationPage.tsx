@@ -7,6 +7,7 @@ import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
 import { StockLineChart } from '../../components/ui/Chart';
 import ReportNavTabs from '../../components/reports/ReportNavTabs';
+import AgentRunButton from '../../components/agents/AgentRunButton';
 import type { TableColumn } from '../../components/ui/Table';
 import type { BudgetUtilisationPoint } from '../../types/reports';
 
@@ -44,14 +45,25 @@ const BudgetUtilisationPage = () => {
             What percentage of each allocation run's budget was actually spent.
           </p>
         </div>
-        <Button
-          variant="ghost"
-          className="inline-flex items-center gap-1.5"
-          onClick={() => reportService.downloadBudgetUtilisationCsv()}
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <AgentRunButton
+            agentType="analytics"
+            label="Explain with Analytics Agent"
+            modalTitle="Analytics Agent"
+            buildPayload={() => ({
+              message: 'Explain the current findings in the Budget Utilisation report (budget_utilisation).',
+              action: 'report_review',
+            })}
+          />
+          <Button
+            variant="ghost"
+            className="inline-flex items-center gap-1.5"
+            onClick={() => reportService.downloadBudgetUtilisationCsv()}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <ReportNavTabs />

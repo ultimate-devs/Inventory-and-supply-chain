@@ -1,9 +1,11 @@
 import { LlmAgent } from '@google/adk';
 import { analyticsTools } from '../tools/analyticsTools.js';
+import { geminiModel } from '../geminiModel.js';
+import { env } from '../env.js';
 
 export const analyticsAgent = new LlmAgent({
   name: 'analytics_agent',
-  model: 'gemini-flash-latest',
+  model: geminiModel(env.geminiApiKeyAnalytics),
   description: 'Runs budget-allocation comparisons and turns report data into plain-English narrative insights.',
   instruction: `You are the Analytics Agent for an inventory and supply chain system.
 

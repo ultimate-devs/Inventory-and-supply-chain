@@ -4,6 +4,7 @@ Web-based Inventory & Supply Chain Management System (MERN + planned ADK agent l
 
 - `backend/` — Express/MongoDB API: auth & RBAC, audit log, system settings, categories/items with ROP/EOQ, dashboard aggregation, suppliers with performance scoring, the full purchase order lifecycle with GRN, alerts, and the Greedy vs Proportional budget allocator. See `backend/README.md`.
 - `frontend/` — React/Vite app: auth flow, dashboard, inventory/category management, admin pages, supplier/PO management, ROP/EOQ calculator, greedy allocation & comparison pages, notification bell. See `frontend/README.md`.
+- `agents/` — Gemini-backed ADK agents (Monitoring, Advisory, Analytics, Procurement) that call the API over HTTP as authenticated service accounts. See `backend/README.md#adk-agents-agents-and-the-agent-to-api-auth-flow`.
 
 ## Quick start (Docker)
 
@@ -15,9 +16,10 @@ Boots the API (`:5000`) and a single-node MongoDB replica set together (replica 
 
 ```bash
 cd backend
-npm install            # local deps, for running the seed script against the Docker Mongo
+npm install             # local deps, for running the seed script against the Docker Mongo
 npm run seed:download  # fetches the DataCo dataset CSV (~95MB, gitignored)
 npm run seed            # seeds 5 categories / 50 real items / demand history + a Super Admin login
+npm run seed:suppliers # seeds suppliers + purchase orders against those items
 ```
 
 Then start the frontend separately (Docker Compose here only runs the API + Mongo):
@@ -30,9 +32,19 @@ npm run dev             # http://localhost:5173
 
 Swagger docs: `http://localhost:5000/api/docs`. Seeded Super Admin login: `admin@example.com` / `ChangeMe123!` (from `backend/.env.example` — override via `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`).
 
+`docker compose up` also starts the `agents` service on `:4000`, but it needs a `GEMINI_API_KEY` and the two service-account passwords to do anything useful — set `GEMINI_API_KEY`, `AGENTS_READONLY_PASSWORD`, and `AGENTS_PROCUREMENT_PASSWORD` in a `.env` file at the repo root (docker-compose.yml reads them from there) before bringing it up, and run `npm run seed:agents` in `backend/` first so those two accounts actually exist to log in as.
+
 ## Quick start (without Docker)
 
 Run MongoDB yourself as a single-node replica set, point `backend/.env`'s `MONGODB_URI` at it, then run `npm run dev` in both `backend/` and `frontend/` as above.
+
+To also run the agents service locally: `cd backend && npm run seed:agents` first (creates the two service-account logins, printing their generated passwords once), copy `agents/.env.example` to `agents/.env`, fill in `GEMINI_API_KEY` and those two passwords (`API_BASE_URL` should point at `http://localhost:5000/api/v1` outside Docker), then:
+
+```bash
+cd agents
+npm install
+npm run dev             # http://localhost:4000
+```
 
 ## Team & phase status
 

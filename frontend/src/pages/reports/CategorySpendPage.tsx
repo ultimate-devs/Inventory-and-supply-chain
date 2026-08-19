@@ -7,6 +7,7 @@ import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
 import StockBarChart from '../../components/ui/Chart';
 import ReportNavTabs from '../../components/reports/ReportNavTabs';
+import AgentRunButton from '../../components/agents/AgentRunButton';
 import type { TableColumn } from '../../components/ui/Table';
 import type { CategorySpendRow } from '../../types/reports';
 
@@ -42,14 +43,25 @@ const CategorySpendPage = () => {
             Committed (ordered) vs. actually received spend, by item category.
           </p>
         </div>
-        <Button
-          variant="ghost"
-          className="inline-flex items-center gap-1.5"
-          onClick={() => reportService.downloadCategorySpendCsv()}
-        >
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <AgentRunButton
+            agentType="analytics"
+            label="Explain with Analytics Agent"
+            modalTitle="Analytics Agent"
+            buildPayload={() => ({
+              message: 'Explain the current findings in the Category Spend report (category_spend).',
+              action: 'report_review',
+            })}
+          />
+          <Button
+            variant="ghost"
+            className="inline-flex items-center gap-1.5"
+            onClick={() => reportService.downloadCategorySpendCsv()}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <ReportNavTabs />

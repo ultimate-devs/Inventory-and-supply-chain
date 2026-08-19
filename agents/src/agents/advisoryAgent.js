@@ -1,9 +1,11 @@
 import { LlmAgent } from '@google/adk';
 import { advisoryTools } from '../tools/advisoryTools.js';
+import { geminiModel } from '../geminiModel.js';
+import { env } from '../env.js';
 
 export const advisoryAgent = new LlmAgent({
   name: 'advisory_agent',
-  model: 'gemini-flash-latest',
+  model: geminiModel(env.geminiApiKeyAdvisory),
   description: 'Recommends reorder-point and order-quantity policies by running what-if demand scenarios.',
   instruction: `You are the Advisory Agent for an inventory and supply chain system.
 

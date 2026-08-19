@@ -33,6 +33,13 @@ export const env = {
     pass: process.env.EMAIL_PASS,
     from: process.env.EMAIL_FROM || 'SupplyChain Pro <no-reply@supplychainpro.local>',
   },
+  agents: {
+    // Base URL of the internal ADK agents service (see agents/src/server.js).
+    // The shared key never reaches the browser - the frontend calls our own
+    // /agent-runs proxy, which attaches this server-side.
+    serviceUrl: process.env.AGENTS_SERVICE_URL || 'http://localhost:4000',
+    internalApiKey: process.env.AGENTS_INTERNAL_API_KEY || '',
+  },
 };
 
 export const isProd = env.nodeEnv === 'production';

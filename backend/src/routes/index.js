@@ -11,6 +11,7 @@ import alertRoutes from './alertRoutes.js';
 import algorithmRoutes from './algorithmRoutes.js';
 import reportRoutes from './reportRoutes.js';
 import agentLogRoutes from './agentLogRoutes.js';
+import agentRunRoutes from './agentRunRoutes.js';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/alerts', alertRoutes);
 router.use('/algorithms', algorithmRoutes);
 router.use('/reports', reportRoutes);
 router.use('/agent-logs', agentLogRoutes);
+router.use('/agent-runs', agentRunRoutes);
 
 export default router;

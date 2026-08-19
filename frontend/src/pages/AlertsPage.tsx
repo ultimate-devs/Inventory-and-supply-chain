@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BellRing, Check, CheckCheck } from 'lucide-react';
+import { BellRing, Check, CheckCheck, ShoppingCart } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchAlerts, acknowledgeAlert, resolveAlert } from '../store/slices/alertsSlice';
 import Table from '../components/ui/Table';
 import type { TableColumn } from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import AgentRunButton from '../components/agents/AgentRunButton';
+import { ROLES } from '../types/auth';
 import type { Alert, AlertSeverity, AlertStatus } from '../types/alert';
+
+const STOCK_ALERT_TYPES = new Set(['low_stock', 'critical_stock']);
 
 type Tab = 'all' | AlertStatus;
 
@@ -53,6 +57,8 @@ const AlertsPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { alerts, alertsStatus, alertsError } = useAppSelector((state) => state.alerts);
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const canDraftPo = currentUser?.role === ROLES.SUPER_ADMIN || currentUser?.role === ROLES.PROCUREMENT_OFFICER;
   const [tab, setTab] = useState<Tab>('open');
 
   useEffect(() => {
@@ -94,22 +100,43 @@ const AlertsPage = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          {row.status === 'open' && (
-            <Button variant="ghost" onClick={() => dispatch(acknowledgeAlert(row._id))} className="inline-flex items-center gap-1.5 px-2.5 py-1.5">
-              <Check className="h-3.5 w-3.5" />
-              Acknowledge
-            </Button>
-          )}
-          {row.status !== 'resolved' && (
-            <Button variant="ghost" onClick={() => dispatch(resolveAlert(row._id))} className="inline-flex items-center gap-1.5 px-2.5 py-1.5">
-              <CheckCheck className="h-3.5 w-3.5" />
-              Resolve
-            </Button>
-          )}
-        </div>
-      ),
+      render: (row) => {
+        const itemId = row.item && typeof row.item !== 'string' ? row.item._id : typeof row.item === 'string' ? row.item : null;
+        const itemLabel = row.item && typeof row.item !== 'string' ? row.item.name : 'this item';
+        const canDraft = canDraftPo && itemId && STOCK_ALERT_TYPES.has(row.type);
+
+        return (
+          <div className="flex items-center gap-2">
+            {row.status === 'open' && (
+              <Button variant="ghost" onClick={() => dispatch(acknowledgeAlert(row._id))} className="inline-flex items-center gap-1.5 px-2.5 py-1.5">
+                <Check className="h-3.5 w-3.5" />
+                Acknowledge
+              </Button>
+            )}
+            {row.status !== 'resolved' && (
+              <Button variant="ghost" onClick={() => dispatch(resolveAlert(row._id))} className="inline-flex items-center gap-1.5 px-2.5 py-1.5">
+                <CheckCheck className="h-3.5 w-3.5" />
+                Resolve
+              </Button>
+            )}
+            {canDraft && (
+              <AgentRunButton
+                agentType="procurement"
+                label="Draft PO"
+                modalTitle="Procurement Agent"
+                icon={<ShoppingCart className="h-3.5 w-3.5" />}
+                className="px-2.5 py-1.5"
+                buildPayload={() => ({
+                  message: `Item "${itemLabel}" (id ${itemId}) is low on stock: "${row.message}". Recommend a supplier for this item and, if one is available, draft and submit a purchase order for review.`,
+                  action: 'draft_po',
+                  relatedModel: 'Item',
+                  relatedId: itemId as string,
+                })}
+              />
+            )}
+          </div>
+        );
+      },
     },
   ];
 

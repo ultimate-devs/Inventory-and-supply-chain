@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot } from 'lucide-react';
+import { ArrowRight, Bot, Radar } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchAgentLogs } from '../store/slices/agentLogsSlice';
 import Table from '../components/ui/Table';
 import type { TableColumn } from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
+import AgentRunButton from '../components/agents/AgentRunButton';
 import type { AgentLog, AgentType } from '../types/agentLog';
 
 type Tab = 'all' | AgentType;
@@ -73,20 +74,37 @@ const AgentInsightsPage = () => {
     },
   ];
 
+  const runNow = () =>
+    dispatch(fetchAgentLogs({ limit: 50, agentType: tab === 'all' ? undefined : tab }));
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-400">
-          <Bot className="h-5 w-5" />
-        </span>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Agent Insights</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Latest recommendations from the ADK agents. Every entry is traceable to the record it came from - agents
-            never approve a purchase order themselves, so anything actionable is a link into the normal human
-            approval flow.
-          </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-400">
+            <Bot className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Agent Insights</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Latest recommendations from the ADK agents. Every entry is traceable to the record it came from -
+              agents never approve a purchase order themselves, so anything actionable is a link into the normal
+              human approval flow.
+            </p>
+          </div>
         </div>
+        <AgentRunButton
+          agentType="monitoring"
+          label="Run monitoring sweep now"
+          modalTitle="Monitoring Agent"
+          icon={<Radar className="h-4 w-4" />}
+          className="shrink-0"
+          buildPayload={() => ({
+            message: 'Review current inventory and purchase-order health and report anything that needs attention.',
+            action: 'manual_review',
+          })}
+          onSuccess={runNow}
+        />
       </div>
 
       <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
