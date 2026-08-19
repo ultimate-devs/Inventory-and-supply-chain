@@ -23,7 +23,16 @@ const initialState: AuthState = {
 // Attempts a silent refresh on app load, using the httpOnly refresh cookie -
 // this is how a page reload keeps the session alive without storing the
 // access token anywhere persistent.
-export const bootstrapAuth = createAsyncThunk<AuthResponse, void, { rejectValue: null }>(
+//
+// The `condition` guard makes this idempotent per session: React 18
+// StrictMode double-invokes effects in dev, so App.tsx's mount effect calls
+// this twice back-to-back. Without the guard, both calls would race to use
+// the same (not-yet-rotated) refresh cookie - the backend rotates refresh
+// tokens on every use, so whichever request the server processes second
+// finds its token hash already gone and returns 401, wiping out the other
+// request's successful login. Skipping the second call once the first is
+// already `loading` avoids the race entirely.
+export const bootstrapAuth = createAsyncThunk<AuthResponse, void, { state: { auth: AuthState }; rejectValue: null }>(
   'auth/bootstrap',
   async (_, { rejectWithValue }) => {
     try {
@@ -31,6 +40,9 @@ export const bootstrapAuth = createAsyncThunk<AuthResponse, void, { rejectValue:
     } catch {
       return rejectWithValue(null);
     }
+  },
+  {
+    condition: (_, { getState }) => getState().auth.status === 'idle',
   },
 );
 
