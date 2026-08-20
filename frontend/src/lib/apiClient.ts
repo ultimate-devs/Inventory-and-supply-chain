@@ -38,8 +38,13 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableConfig | undefined;
 
-    const isRefreshCall = originalRequest?.url?.includes('/auth/refresh');
-    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry || isRefreshCall) {
+    // These endpoints return their own meaningful 401s (bad credentials, bad
+    // token, etc.) - retrying them via silent refresh would mask that error
+    // behind an unrelated "Missing refresh token" failure.
+    const isAuthEndpoint = ['/auth/refresh', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'].some(
+      (path) => originalRequest?.url?.includes(path),
+    );
+    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry || isAuthEndpoint) {
       return Promise.reject(error);
     }
 
